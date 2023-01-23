@@ -1,0 +1,36 @@
+{
+    "name": "interactivevision/visitor",
+    "description": "Support package for InteractiveVision framework.",
+    "license": "MIT",
+    "version": "0.1.0",
+    "homepage": "https://github.com/interviteam/visitor",
+    "authors": [
+        {
+            "name": "InteractiveVision",
+            "email": "dev@interactivevision.pl"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "ext-pcntl": "*",
+        "ext-curl": "*",
+        "illuminate/console": "^9.0",
+        "illuminate/http": "^9.0",
+        "illuminate/support": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "InteractiveVision\\Visitor\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
