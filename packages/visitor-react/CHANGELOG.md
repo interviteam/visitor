@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.4
+
+### Patch Changes
+
+- Fix types for Link renderer option.
+- Updated dependencies
+  - @interactivevision/visitor@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

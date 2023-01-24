@@ -1,4 +1,4 @@
-import React, { DetailedHTMLProps, HTMLAttributes, FunctionComponent, useCallback, createElement, useState, useMemo, ReactElement } from 'react';
+import React, { DetailedHTMLProps, HTMLAttributes, FunctionComponent, useCallback, createElement, useState, useMemo, ReactNode, ReactElement } from 'react';
 import { router } from '@interactivevision/visitor';
 import { useLocation } from './location';
 
@@ -10,7 +10,7 @@ type LinkProps = Omit<LinkAnchorProps, 'href' | 'className' | 'children'> & {
   href: string;
   end?: boolean
   className?: LinkClassNameBuilder | string | undefined;
-  children?: LinkChildrenRenderer | ReactElement;
+  children?: LinkChildrenRenderer | ReactNode | undefined;
 };
 
 export const Link: FunctionComponent<LinkProps> = ({

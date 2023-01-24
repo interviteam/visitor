@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.4
+
+### Patch Changes
+
+- Fix types for Link renderer option.
+
 ## 0.1.3
 
 ### Patch Changes
