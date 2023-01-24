@@ -5,7 +5,8 @@
         "packages/visitor-react"
     ],
     "scripts": {
-        "build": "turbo run build"
+        "build": "turbo run build",
+        "deploy": "yarn build && changeset && changeset version && changeset publish"
     },
     "dependencies": {
         "@changesets/cli": "^2.26.0"
