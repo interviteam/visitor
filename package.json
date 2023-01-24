@@ -4,6 +4,9 @@
         "packages/visitor",
         "packages/visitor-react"
     ],
+    "scripts": {
+        "build": "turbo run build"
+    },
     "dependencies": {
         "@changesets/cli": "^2.26.0"
     }

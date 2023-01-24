@@ -1,15 +1,16 @@
-import React, { DetailedHTMLProps, HTMLAttributes, ReactNode, FunctionComponent, useCallback, createElement, useState, useMemo } from 'react';
+import React, { DetailedHTMLProps, HTMLAttributes, FunctionComponent, useCallback, createElement, useState, useMemo, ReactElement } from 'react';
 import { router } from '@interactivevision/visitor';
 import { useLocation } from './location';
 
 type LinkAnchorProps = DetailedHTMLProps<HTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>;
-type LinkChildrenRenderer = (options: { isActive: boolean, isPending: boolean }) => ReactNode | undefined;
+type LinkRendererProps = { href: string, onClick: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void };
+type LinkChildrenRenderer = (options: { isActive: boolean, isPending: boolean, props: LinkRendererProps }) => ReactElement;
 type LinkClassNameBuilder = (options: { isActive: boolean, isPending: boolean }) => string | undefined;
-type LinkProps = Omit<LinkAnchorProps, 'href' | 'className'> & {
+type LinkProps = Omit<LinkAnchorProps, 'href' | 'className' | 'children'> & {
   href: string;
   end?: boolean
   className?: LinkClassNameBuilder | string | undefined;
-  children?: LinkChildrenRenderer | ReactNode | undefined;
+  children?: LinkChildrenRenderer | ReactElement;
 };
 
 export const Link: FunctionComponent<LinkProps> = ({
@@ -38,6 +39,14 @@ export const Link: FunctionComponent<LinkProps> = ({
     router.dispatch(href).then(() => setIsPending(false));
   }, [href]);
 
+  if (typeof children === 'function') {
+    return children({
+      isActive,
+      isPending,
+      props: { href, onClick: handleClickEvent },
+    });
+  }
+
   return createElement(
     'a',
     {
@@ -46,7 +55,7 @@ export const Link: FunctionComponent<LinkProps> = ({
       onClick: handleClickEvent,
       ...props,
     },
-    typeof children === 'function' ? children({ isActive, isPending }) : children,
+    children,
   );
 };
 
