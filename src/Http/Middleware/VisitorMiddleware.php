@@ -44,6 +44,7 @@ class VisitorMiddleware
 
     public function handle(Request $request, Closure $next)
     {
+        Visitor::setGuard($this->guard);
         Visitor::setView($this->root($request));
         Visitor::setManifest($this->manifest($request));
 
