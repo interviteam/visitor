@@ -128,8 +128,9 @@ export class Visitor {
   }
 
   protected handlePopstateEvent(event: PopStateEvent) {
-    if (event.state !== null) {
-      this.updateComponent(event.state);
+    if (event.state !== null && event.state.location && event.state.visit) {
+      this.updateComponent(event.state.visit);
+      this.updateLocation(event.state.location);
     } else {
       this.replaceState({ visit: this.visit, location: this.location });
     }
