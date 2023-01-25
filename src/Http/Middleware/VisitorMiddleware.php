@@ -48,7 +48,11 @@ class VisitorMiddleware
         Visitor::setView($this->root($request));
         Visitor::setManifest($this->manifest($request));
 
-        return $next($request);
+        $response = $next($request);
+
+        $response->headers->set('Vary', 'X-Visitor');
+
+        return $response;
     }
 
 
