@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.6
+
+### Patch Changes
+
+- ae4f90f: Fix pop state event handler.
+
 ## 0.1.5
 
 ### Patch Changes

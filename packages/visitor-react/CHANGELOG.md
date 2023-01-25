@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.6
+
+### Patch Changes
+
+- 137703d: Fix link active state.
+- Updated dependencies [ae4f90f]
+  - @interactivevision/visitor@0.1.6
+
 ## 0.1.5
 
 ### Patch Changes

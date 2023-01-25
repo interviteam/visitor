@@ -6,7 +6,7 @@
     ],
     "scripts": {
         "build": "turbo run build",
-        "deploy": "yarn build && changeset && changeset version && changeset publish"
+        "deploy": "yarn build && changeset version && changeset publish --no-git-tag"
     },
     "dependencies": {
         "@changesets/cli": "^2.26.0"
