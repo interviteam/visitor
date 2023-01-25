@@ -21,8 +21,9 @@ export const Link: FunctionComponent<LinkProps> = ({
   onClick = () => {},
   ...props
 }) => {
+  const normalized = normalizeHref(href);
   const location = useLocation();
-  const isActive = useMemo(() => location === href || (!end && location.startsWith(href)), [location]);
+  const isActive = useMemo(() => location === normalized || (!end && location.startsWith(normalized)), [location]);
   const [isPending, setIsPending] = useState(false);
 
   const handleClickEvent = useCallback((event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -57,6 +58,16 @@ export const Link: FunctionComponent<LinkProps> = ({
     },
     children,
   );
+};
+
+export const normalizeHref = (href: string) => {
+  const hasHost = /^https?:\/\//.test(href);
+
+  if (hasHost) {
+    return (new URL(href)).pathname;
+  }
+
+  return href;
 };
 
 export const shouldInterceptEvent = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>): boolean => !(
