@@ -116,12 +116,12 @@ class VisitorFactory implements Responsable
     public function renderStatic(string $component, Closure $callback = null): static
     {
         if (! $this->config->isServerRenderingEnabled()) {
-            return $this->renderClient($component, $callback());
+            return $this->renderClient($component, is_null($callback) ? [] : $callback());
         }
 
         $this->mode = self::MODE_SSG;
         $this->component = $component;
-        $this->props = $callback;
+        $this->props = is_null($callback) ? [] : $callback;
 
         return $this;
     }
