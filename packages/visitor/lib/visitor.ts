@@ -51,8 +51,8 @@ type RouterOptions = {
   onSessionUpdate: SessionHandler;
 }
 
-export class Visitor {
-
+export class Visitor
+{
   protected finder!: Finder;
   protected onLocationUpdate!: LocationHandler;
   protected onSharedUpdate!: SharedHandler;
@@ -64,7 +64,8 @@ export class Visitor {
   protected visit!: Visit;
   protected request: Request | undefined;
 
-  public init({ session, location, visit, finder, onLocationUpdate, onComponentUpdate, onSharedUpdate, onSessionUpdate }: RouterOptions): void {
+  public init({ session, location, visit, finder, onLocationUpdate, onComponentUpdate, onSharedUpdate, onSessionUpdate }: RouterOptions): void
+  {
     this.finder = finder;
     this.onLocationUpdate = onLocationUpdate;
     this.onComponentUpdate = onComponentUpdate;
@@ -75,17 +76,20 @@ export class Visitor {
     this.initializeStateEvents();
   };
 
-  protected initializeStateEvents() {
+  protected initializeStateEvents()
+  {
     window.addEventListener('popstate', this.handlePopstateEvent.bind(this));
   }
 
-  protected initializeFirstVisit(visit: Visit, location: string, session: Session) {
+  protected initializeFirstVisit(visit: Visit, location: string, session: Session)
+  {
     this.updateSession(session);
 
     this.replaceState({ visit, location });
   }
 
-  public dispatch(url: string): Promise<VisitorResponse> {
+  public dispatch(url: string, replace: boolean = false): Promise<VisitorResponse>
+  {
     if (this.request !== undefined) {
       this.request.abort();
     }
@@ -95,7 +99,13 @@ export class Visitor {
     return this.request.send()
       .then((res) => {
         this.updateSession(res.session);
-        this.pushState(res);
+
+        if (replace) {
+          this.replaceState(res);
+        } else {
+          this.pushState(res);
+        }
+
         this.updateComponent(res.visit);
 
         return res;
@@ -109,7 +119,13 @@ export class Visitor {
       });
   }
 
-  protected pushState({ visit, location }: HistoryState) {
+  public reload(): Promise<VisitorResponse>
+  {
+    return this.dispatch(this.location, true);
+  }
+
+  protected pushState({ visit, location }: HistoryState)
+  {
     this.visit = visit;
 
     window.history.pushState({ visit, location }, '', location);
@@ -118,7 +134,8 @@ export class Visitor {
     return visit;
   }
 
-  protected replaceState({ visit, location }: HistoryState) {
+  protected replaceState({ visit, location }: HistoryState)
+  {
     this.visit = visit;
 
     window.history.replaceState({ location, visit }, '', location);
@@ -127,7 +144,8 @@ export class Visitor {
     return visit;
   }
 
-  protected handlePopstateEvent(event: PopStateEvent) {
+  protected handlePopstateEvent(event: PopStateEvent)
+  {
     if (event.state !== null && event.state.location && event.state.visit) {
       this.updateComponent(event.state.visit);
       this.updateLocation(event.state.location);
@@ -136,17 +154,24 @@ export class Visitor {
     }
   }
 
-  protected updateSession(session: Session) {
+  protected updateSession(session: Session)
+  {
     this.session = session;
     this.onSessionUpdate.call(this, session);
   }
 
-  protected updateLocation(location: string) {
+  protected updateLocation(location: string)
+  {
+    if (this.location === location) {
+      return;
+    }
+
     this.location = location;
     this.onLocationUpdate.call(this, location);
   }
 
-  protected updateComponent(visit: Visit) {
+  protected updateComponent(visit: Visit)
+  {
     this.finder(visit.view).then((component) => {
       this.onComponentUpdate.call(this, { component, props: visit.props });
     });
