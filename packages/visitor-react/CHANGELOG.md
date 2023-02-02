@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.9
+
+### Patch Changes
+
+- c76c752: Move meta to visit props
+- Updated dependencies [c76c752]
+  - @interactivevision/visitor@0.1.9
+
 ## 0.1.8
 
 ### Patch Changes

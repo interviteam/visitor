@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.9
+
+### Patch Changes
+
+- c76c752: Move meta to visit props
+
 ## 0.1.8
 
 ### Patch Changes
