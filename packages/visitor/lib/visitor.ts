@@ -1,11 +1,31 @@
 import { ComponentType } from 'react';
 import { Request, VisitorResponse } from './request';
 
+type MetaTitle = {
+  type: 'title',
+  content: string;
+}
+
+type MetaTag = {
+  type: 'meta',
+  name: string;
+  content: string;
+}
+
+type MetaSnippet = {
+  type: 'snippet',
+  content: string;
+}
+
+export type MetaData = MetaTitle | MetaTag | MetaSnippet;
+
 export type Visit = {
   // Path to view component for given page.
   view: string;
   // Shared props updates.
   shared: Record<string, any> | undefined;
+  // Page meta data.
+  meta: MetaData[];
   // Props passed to component once it's resolved.
   props: Record<string, any>;
   // Page assets version.
@@ -173,7 +193,40 @@ export class Visitor
   protected updateComponent(visit: Visit)
   {
     this.finder(visit.view).then((component) => {
+      this.updateHead(visit.meta);
       this.onComponentUpdate.call(this, { component, props: visit.props });
+    });
+  }
+
+  protected updateHead(meta: MetaData[])
+  {
+    document.head.querySelectorAll('[visitor]').forEach((element) => element.remove());
+
+    meta.forEach((tag) => {
+      let element: HTMLElement;
+
+      switch (tag.type) {
+        case 'title':
+          element = document.createElement('title');
+          element.innerHTML = tag.content;
+          break;
+
+        case 'meta':
+          element = document.createElement('meta');
+          element.setAttribute('name', tag.name);
+          element.setAttribute('content', tag.content);
+          break;
+
+        case 'snippet':
+          element = document.createElement('script');
+          element.setAttribute('type', 'application/ld+json');
+          element.innerHTML = tag.content;
+          break;
+      }
+
+      element.setAttribute('visitor', '');
+
+      document.head.append(element);
     });
   }
 }
