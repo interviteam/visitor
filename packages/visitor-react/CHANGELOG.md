@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.8
+
+### Patch Changes
+
+- 40bf836: Implement head management
+- Updated dependencies [40bf836]
+  - @interactivevision/visitor@0.1.8
+
 ## 0.1.7
 
 ### Patch Changes

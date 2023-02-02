@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.8
+
+### Patch Changes
+
+- 40bf836: Implement head management
+
 ## 0.1.7
 
 ### Patch Changes
