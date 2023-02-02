@@ -24,10 +24,8 @@ export type Visit = {
   view: string;
   // Shared props updates.
   shared: Record<string, any> | undefined;
-  // Page meta data.
-  meta: MetaData[];
   // Props passed to component once it's resolved.
-  props: Record<string, any>;
+  props: Record<string, any> & { meta?: MetaData[] };
   // Page assets version.
   version: string;
 };
@@ -193,13 +191,19 @@ export class Visitor
   protected updateComponent(visit: Visit)
   {
     this.finder(visit.view).then((component) => {
-      this.updateHead(visit.meta);
+      this.updateHead(visit.props.meta);
       this.onComponentUpdate.call(this, { component, props: visit.props });
     });
   }
 
-  protected updateHead(meta: MetaData[])
+  protected updateHead(meta?: MetaData[])
   {
+    // Do not update meta tags until new one arrives.
+    // Otherwise, you'll end with page without metadata.
+    if (!meta) {
+      return;
+    }
+
     document.head.querySelectorAll('[visitor]').forEach((element) => element.remove());
 
     meta.forEach((tag) => {

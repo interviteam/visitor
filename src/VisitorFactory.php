@@ -51,9 +51,6 @@ class VisitorFactory implements Responsable
     private string $manifest;
 
 
-    private array $meta = [];
-
-
     private string $mode = self::MODE_CSR;
 
 
@@ -81,14 +78,6 @@ class VisitorFactory implements Responsable
     public function back(): static
     {
         return $this->redirect(Redirect::back());
-    }
-
-
-    public function meta(array $meta): static
-    {
-        $this->meta = array_merge($this->meta, $meta);
-
-        return $this;
     }
 
 
@@ -262,7 +251,6 @@ class VisitorFactory implements Responsable
         return [
             'view' => $this->component,
             'shared' => $this->shared,
-            'meta' => $this->meta,
             'props' => value($this->props),
             'version' => $this->version,
         ];
