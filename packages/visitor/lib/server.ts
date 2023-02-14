@@ -12,11 +12,18 @@ const readableToString: (readable: IncomingMessage) => Promise<string> = (readab
   readable.on('error', (err) => reject(err));
 });
 
-export function startRenderingService(render: AppCallback, port: number = 2137): void {
+export function startRenderingService(render: AppCallback, port: number = 2137): void
+{
   const routes: Record<string, RouteHandler> = {
     '/health': async () => ({ status: 'OK', timestamp: Date.now() }),
     '/shutdown': () => process.exit(),
-    '/render': async (request) => render(JSON.parse(await readableToString(request))),
+    '/render': async (request) => {
+      const { globals, visit } = JSON.parse(await readableToString(request));
+
+      Object.keys(globals).forEach((key) => global[key] = globals[key]);
+
+      return render(visit);
+    },
     '/404': async () => ({ status: 'NOT_FOUND', timestamp: Date.now() }),
   };
 

@@ -12,10 +12,12 @@
     ],
     "require": {
         "php": "^8.1",
-        "ext-pcntl": "*",
         "ext-curl": "*",
+        "ext-pcntl": "*",
+        "illuminate/broadcasting": "^9.51",
         "illuminate/console": "^9.0",
         "illuminate/http": "^9.0",
+        "illuminate/queue": "^9.51",
         "illuminate/support": "^9.0"
     },
     "autoload": {

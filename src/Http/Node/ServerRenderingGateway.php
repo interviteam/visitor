@@ -3,8 +3,10 @@
 namespace InteractiveVision\Visitor\Http\Node;
 
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Http;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
+use InteractiveVision\Visitor\Events\ServerRenderingRegisterGlobals;
 use InteractiveVision\Visitor\Exceptions\ServerRenderingException;
 use Throwable;
 
@@ -14,9 +16,13 @@ class ServerRenderingGateway
     private VisitorConfiguration $config;
 
 
-    public function __construct(VisitorConfiguration $config)
+    private Dispatcher $dispatcher;
+
+
+    public function __construct(Dispatcher $dispatcher, VisitorConfiguration $config)
     {
         $this->config = $config;
+        $this->dispatcher = $dispatcher;
     }
 
 
@@ -28,8 +34,14 @@ class ServerRenderingGateway
 
         $url = rtrim($this->config->getServerRenderingHost(), '/') . '/render';
 
+        $this->dispatcher->dispatch(
+            $event = new ServerRenderingRegisterGlobals()
+        );
+
+        $globals = $event->all();
+
         try {
-            $rendered = Http::post($url, $visit)->throw()->body();
+            $rendered = Http::post($url, compact('visit', 'globals'))->throw()->body();
         } catch (Throwable $e) {
             throw new ServerRenderingException("SSR request failed!", previous: $e);
         }
