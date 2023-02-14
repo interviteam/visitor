@@ -191,9 +191,15 @@ export class Visitor
   protected updateComponent(visit: Visit)
   {
     this.finder(visit.view).then((component) => {
+      this.resetScrollPosition();
       this.updateHead(visit.props.meta);
       this.onComponentUpdate.call(this, { component, props: visit.props });
     });
+  }
+
+  protected resetScrollPosition()
+  {
+    window.scrollTo(0, 0);
   }
 
   protected updateHead(meta?: MetaData[])
