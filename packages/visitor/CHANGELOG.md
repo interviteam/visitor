@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.10
+
+### Patch Changes
+
+- b64d37b: Implement scroll position reset
+
 ## 0.1.9
 
 ### Patch Changes
