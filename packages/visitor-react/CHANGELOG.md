@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.11
+
+### Patch Changes
+
+- f607990: Allow passing globals for SSR
+- Updated dependencies [f607990]
+  - @interactivevision/visitor@0.1.11
+
 ## 0.1.10
 
 ### Patch Changes

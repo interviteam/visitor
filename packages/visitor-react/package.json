@@ -1,6 +1,6 @@
 {
     "name": "@interactivevision/visitor-react",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "description": "A simple template for a custom React component library",
     "license": "MIT",
     "homepage": "https://github.com/interviteam/visitor",
@@ -49,7 +49,8 @@
     },
     "scripts": {
         "dev": "./build.js --watch",
-        "build": "npm run clean && ./build.js && tsc --emitDeclarationOnly",
-        "clean": "rm -rf types && rm -rf dist"
+        "build": "./build.js",
+        "clean": "rm -rf types && rm -rf dist",
+        "types": "tsc --emitDeclarationOnly"
     }
 }

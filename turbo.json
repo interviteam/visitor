@@ -1,12 +1,26 @@
 {
     "$schema": "https://turbo.build/schema.json",
     "pipeline": {
-        "build": {
-            "outputs": [
-                "dist/**",
-                "types/**"
-            ]
+        "clean": {
+            "cache": false
         },
-        "lint": {}
+        "types": {
+            "dependsOn": [
+                "^clean"
+            ],
+            "outputs": [
+                "types/**"
+            ],
+            "cache": false
+        },
+        "build": {
+            "dependsOn": [
+                "^types"
+            ],
+            "outputs": [
+                "dist/**"
+            ],
+            "cache": false
+        }
     }
 }
