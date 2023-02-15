@@ -284,7 +284,7 @@ class VisitorFactory implements Responsable
         // For SSG we want to cache built data to speed up server response.
         // We use separate cache store since we always want to load data
         // from cache, when views are loaded only on initial page loads.
-        if ($this->mode === self::MODE_SSG) {
+        if ($this->mode === self::MODE_SSG && App::environment('production')) {
             return Cache::driver('visitor.data')->rememberForever(
                 key: $this->cacheKey,
                 callback: fn() => $this->makeData()
@@ -313,7 +313,7 @@ class VisitorFactory implements Responsable
         // we don't need view at all, since we're in SPA already,
         // only data will be delivered for client to render client side.
         // This case will be used only for initial page loads.
-        if ($this->mode === self::MODE_SSG) {
+        if ($this->mode === self::MODE_SSG && App::environment('production')) {
             return Cache::driver('visitor.views')->rememberForever(
                 key: $this->cacheKey,
                 callback: fn() => $this->sendServerRenderingRequest($data)
