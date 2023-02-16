@@ -191,7 +191,7 @@ class VisitorFactory implements Responsable
             return Response::noContent(302, ['X-Visitor-Location' => $this->target]);
         }
 
-        $this->location = $request->getBaseUrl() . $request->getRequestUri();
+        $this->location = $request->url();
         $this->cacheKey = $this->cacheKey ?: $this->location;
 
         $data = $this->resolveVisitData();
