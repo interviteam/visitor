@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.13
+
+### Patch Changes
+
+- 78fa87e: Make sure page key is unique
+
 ## 0.1.12
 
 ### Patch Changes
