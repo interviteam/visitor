@@ -54,7 +54,7 @@ export const Router: FunctionComponent<RouterProps> = ({ finder, component, sess
   }
 
   function createPage() {
-    return createElement(current.component, { key: location, ...current.props });
+    return createElement(current.component, { key: _location, ...current.props });
   }
 
   if (current.component.layout) {
