@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.14
+
+### Patch Changes
+
+- a658e22: Fix page keys in SSR mode.
+- Updated dependencies [a658e22]
+  - @interactivevision/visitor@0.1.14
+
 ## 0.1.13
 
 ### Patch Changes

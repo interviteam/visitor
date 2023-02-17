@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.14
+
+### Patch Changes
+
+- a658e22: Fix page keys in SSR mode.
+
 ## 0.1.13
 
 ### Patch Changes
