@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.12
+
+### Patch Changes
+
+- 2aa1a33: Add key to react router component.
+
 ## 0.1.11
 
 ### Patch Changes
