@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.15
+
+### Patch Changes
+
+- Fix key generation in Node.
+
 ## 0.1.14
 
 ### Patch Changes

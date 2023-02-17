@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.15
+
+### Patch Changes
+
+- Fix key generation in Node.
+- Updated dependencies
+  - @interactivevision/visitor@0.1.15
+
 ## 0.1.14
 
 ### Patch Changes

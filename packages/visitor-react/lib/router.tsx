@@ -12,17 +12,33 @@ export type RouterProps = {
   visit: Visit;
 };
 
-export const Router: FunctionComponent<RouterProps> = ({ finder, component, session, location, visit }) => {
+export const Router: FunctionComponent<RouterProps> = ({
+  finder, component, session, location, visit,
+}) => {
   const [_session, setSession] = useState(defaultSession);
   const [_shared, setShared] = useState(visit.shared || {});
   const [_location, setLocation] = useState(location);
 
-  const [current, setCurrent] = useState({ component: component, props: visit.props });
+  const [current, setCurrent] = useState({
+    component: component,
+    props: visit.props,
+  });
 
-  const onLocationUpdate = useCallback((location) => setLocation(location), []);
-  const onComponentUpdate = useCallback((component) => setCurrent(component), []);
-  const onSharedUpdate = useCallback((shared) => setShared((prev) => ({ ...prev, ...shared })), []);
-  const onSessionUpdate = useCallback((session) => setSession(() => session), []);
+  const onLocationUpdate = useCallback((location) => {
+    setLocation(location);
+  }, []);
+
+  const onComponentUpdate = useCallback((component) => {
+    setCurrent(component);
+  }, []);
+
+  const onSharedUpdate = useCallback((shared) => {
+    setShared((prev) => ({ ...prev, ...shared }));
+  }, []);
+
+  const onSessionUpdate = useCallback((session) => {
+    setSession(session);
+  }, []);
 
   useEffect(() => {
     router.init({
@@ -54,11 +70,19 @@ export const Router: FunctionComponent<RouterProps> = ({ finder, component, sess
   }
 
   function createPage() {
-    return createElement(current.component, { key: `visitor-page-${_location.replaceAll(/[^a-z0-9]/ig, '-')}`, ...current.props });
+    return createElement(
+      current.component,
+      {
+        key: `visitor-page-${_location.replace(/[^a-z0-9]/ig, '-')}`,
+        ...current.props,
+      },
+    );
   }
 
   if (current.component.layout) {
-    return wrapWithContext(wrapWithLayout(current.component.layout, createPage()));
+    return wrapWithContext(
+      wrapWithLayout(current.component.layout, createPage()),
+    );
   }
 
   return wrapWithContext(createPage());
