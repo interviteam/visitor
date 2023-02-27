@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.16
+
+### Patch Changes
+
+- 4b8d603: Implement start/done events
+- Updated dependencies [4b8d603]
+  - @interactivevision/visitor@0.1.16
+
 ## 0.1.15
 
 ### Patch Changes

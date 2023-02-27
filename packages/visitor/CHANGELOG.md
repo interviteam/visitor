@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.16
+
+### Patch Changes
+
+- 4b8d603: Implement start/done events
+
 ## 0.1.15
 
 ### Patch Changes
