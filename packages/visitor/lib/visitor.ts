@@ -69,8 +69,7 @@ type RouterOptions = {
   onSessionUpdate: SessionHandler;
 }
 
-export class Visitor
-{
+export class Visitor {
   protected finder!: Finder;
   protected onLocationUpdate!: LocationHandler;
   protected onSharedUpdate!: SharedHandler;
@@ -82,8 +81,7 @@ export class Visitor
   protected visit!: Visit;
   protected request: Request | undefined;
 
-  public init({ session, location, visit, finder, onLocationUpdate, onComponentUpdate, onSharedUpdate, onSessionUpdate }: RouterOptions): void
-  {
+  public init({ session, location, visit, finder, onLocationUpdate, onComponentUpdate, onSharedUpdate, onSessionUpdate }: RouterOptions): void {
     this.finder = finder;
     this.onLocationUpdate = onLocationUpdate;
     this.onComponentUpdate = onComponentUpdate;
@@ -94,24 +92,26 @@ export class Visitor
     this.initializeStateEvents();
   };
 
-  protected initializeStateEvents()
-  {
+  protected initializeStateEvents() {
     window.addEventListener('popstate', this.handlePopstateEvent.bind(this));
   }
 
-  protected initializeFirstVisit(visit: Visit, location: string, session: Session)
-  {
+  protected initializeFirstVisit(visit: Visit, location: string, session: Session) {
     this.updateSession(session);
 
     this.replaceState({ visit, location });
   }
 
-  public dispatch(url: string, replace: boolean = false): Promise<VisitorResponse>
-  {
+  protected fireEvent(name: string, options = {}) {
+    return document.dispatchEvent(new CustomEvent(`visitor:${name}`, options));
+  }
+
+  public dispatch(url: string, replace: boolean = false): Promise<VisitorResponse> {
     if (this.request !== undefined) {
       this.request.abort();
     }
 
+    this.fireEvent('start');
     this.request = new Request(url);
 
     return this.request.send()
@@ -131,19 +131,22 @@ export class Visitor
       .catch((error) => {
         console.error(error);
 
+        this.fireEvent('error');
+
         // TODO: Display errors somehow here. Might be useful to resolve error pages and provide some API.
 
         return Promise.reject(error);
+      })
+      .finally(() => {
+        this.fireEvent('done');
       });
   }
 
-  public reload(): Promise<VisitorResponse>
-  {
+  public reload(): Promise<VisitorResponse> {
     return this.dispatch(this.location, true);
   }
 
-  protected pushState({ visit, location }: HistoryState)
-  {
+  protected pushState({ visit, location }: HistoryState) {
     this.visit = visit;
 
     window.history.pushState({ visit, location }, '', location);
@@ -152,8 +155,7 @@ export class Visitor
     return visit;
   }
 
-  protected replaceState({ visit, location }: HistoryState)
-  {
+  protected replaceState({ visit, location }: HistoryState) {
     this.visit = visit;
 
     window.history.replaceState({ location, visit }, '', location);
@@ -162,8 +164,7 @@ export class Visitor
     return visit;
   }
 
-  protected handlePopstateEvent(event: PopStateEvent)
-  {
+  protected handlePopstateEvent(event: PopStateEvent) {
     if (event.state !== null && event.state.location && event.state.visit) {
       this.updateComponent(event.state.visit);
       this.updateLocation(event.state.location);
@@ -172,14 +173,12 @@ export class Visitor
     }
   }
 
-  protected updateSession(session: Session)
-  {
+  protected updateSession(session: Session) {
     this.session = session;
     this.onSessionUpdate.call(this, session);
   }
 
-  protected updateLocation(location: string)
-  {
+  protected updateLocation(location: string) {
     if (this.location === location) {
       return;
     }
@@ -188,8 +187,7 @@ export class Visitor
     this.onLocationUpdate.call(this, location);
   }
 
-  protected updateComponent(visit: Visit)
-  {
+  protected updateComponent(visit: Visit) {
     this.finder(visit.view).then((component) => {
       this.resetScrollPosition();
       this.updateHead(visit.props.meta);
@@ -197,13 +195,11 @@ export class Visitor
     });
   }
 
-  protected resetScrollPosition()
-  {
+  protected resetScrollPosition() {
     window.scrollTo(0, 0);
   }
 
-  protected updateHead(meta?: MetaData[])
-  {
+  protected updateHead(meta?: MetaData[]) {
     // Do not update meta tags until new one arrives.
     // Otherwise, you'll end with page without metadata.
     if (!meta) {
