@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.17
+
+### Patch Changes
+
+- Globals refactor
+
 ## 0.1.16
 
 ### Patch Changes

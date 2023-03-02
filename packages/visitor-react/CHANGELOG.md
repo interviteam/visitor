@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.17
+
+### Patch Changes
+
+- Globals refactor
+- Updated dependencies
+  - @interactivevision/visitor@0.1.17
+
 ## 0.1.16
 
 ### Patch Changes
