@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorApp;
+use InteractiveVision\Visitor\View\Directives\RenderVisitorGlobals;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorHead;
 
 
@@ -39,6 +40,7 @@ class VisitorServiceProvider extends ServiceProvider
         $this->callAfterResolving('blade.compiler', function ($blade) {
             $blade->directive('visitor', [RenderVisitorApp::class, 'compile']);
             $blade->directive('head', [RenderVisitorHead::class, 'compile']);
+            $blade->directive('globals', [RenderVisitorGlobals::class, 'compile']);
         });
     }
 

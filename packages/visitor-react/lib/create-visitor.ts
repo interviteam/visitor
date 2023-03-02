@@ -17,11 +17,15 @@ type CreateOptions = {
 
 export async function createVisitor({ initial, resolve, render, setup }: CreateOptions) {
   const isServer = typeof window === 'undefined';
-  const { session, location, visit } = initial || JSON.parse(document.getElementById('__VISITOR__')?.textContent || '');
+  const { session, location, visit, globals } = initial || JSON.parse(document.getElementById('__VISITOR__')?.textContent || '');
 
   if (!visit) {
     throw new Error('No initial page data was found! Make sure you have used required directives within your Blade root view.');
   }
+
+  Object.keys(globals).forEach((key) => {
+    global[key] = globals[key];
+  });
 
   const finder: Finder = (view) => Promise.resolve(resolve(view)).then(module => {
     return module.default || module;

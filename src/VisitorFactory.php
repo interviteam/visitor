@@ -4,6 +4,7 @@ namespace InteractiveVision\Visitor;
 
 
 use Closure;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Traits\Macroable;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
+use InteractiveVision\Visitor\Events\RegisteringGlobals;
 use InteractiveVision\Visitor\Http\Node\ServerRenderingGateway;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -43,6 +45,9 @@ class VisitorFactory implements Responsable
     private VisitorConfiguration $config;
 
 
+    private Dispatcher $dispatcher;
+
+
     private string|null|false $guard = false;
 
 
@@ -67,12 +72,13 @@ class VisitorFactory implements Responsable
     private string $version = '';
 
 
-    private string $view = 'app';
+    private string $view = '';
 
 
-    public function __construct(VisitorConfiguration $config)
+    public function __construct(VisitorConfiguration $config, Dispatcher $dispatcher)
     {
         $this->config = $config;
+        $this->dispatcher = $dispatcher;
     }
 
 
@@ -82,11 +88,47 @@ class VisitorFactory implements Responsable
     }
 
 
+    public function getGuard(): string|null|false
+    {
+        return $this->guard;
+    }
+
+
+    public function setGuard(string|null|false $guard): static
+    {
+        $this->guard = $guard;
+
+        return $this;
+    }
+
+
+    public function getView(): string
+    {
+        return $this->view;
+    }
+
+
+    public function setView(string $name): static
+    {
+        $this->view = $name;
+
+        return $this;
+    }
+
+
     public function redirect(RedirectResponse|string $url): static
     {
         $this->target = $url instanceof RedirectResponse ? $url->getTargetUrl() : $url;
 
         return $this;
+    }
+
+
+    public function registerGlobals(): array
+    {
+        return tap(new RegisteringGlobals(), function ($event) {
+            $this->dispatcher->dispatch($event);
+        })->all();
     }
 
 
@@ -142,27 +184,11 @@ class VisitorFactory implements Responsable
     }
 
 
-    public function setGuard(string|null|false $guard): static
-    {
-        $this->guard = $guard;
-
-        return $this;
-    }
-
-
     public function setManifest(string $manifest): static
     {
         if (file_exists($manifest = App::basePath($manifest))) {
             $this->version = md5_file($manifest) ?: '';
         }
-
-        return $this;
-    }
-
-
-    public function setView(string $name): static
-    {
-        $this->view = $name;
 
         return $this;
     }
@@ -203,6 +229,11 @@ class VisitorFactory implements Responsable
             return Response::json($this->attachSession($data), 200, ['X-Visitor' => 'true']);
         }
 
+        // We want to attach globals for the initial page load only.
+        // It might provide some global stuff from plugins like,
+        // for example translations or routes.
+        $data = $this->attachGlobals($data);
+
         // For initial page load, we have to respond with root view and
         // the initial visit data to be hydrated into SPA by client.
         // Optionally you can pre-render content in SSR in SSG modes
@@ -218,6 +249,14 @@ class VisitorFactory implements Responsable
         $data = $this->attachSession($data);
 
         return Response::view($this->view, compact('data', 'rendered'));
+    }
+
+
+    private function attachGlobals(array $data): array
+    {
+        $data['globals'] = $this->registerGlobals();
+
+        return $data;
     }
 
 
