@@ -33,16 +33,12 @@ class ServerRenderingGateway
         }
 
         $url = rtrim($this->config->getServerRenderingHost(), '/') . '/render';
-
-        $this->dispatcher->dispatch(
-            $event = new RegisteringGlobals()
-        );
-
-        $globals = $event->all();
+        $globals = tap(new RegisteringGlobals(), fn($event) => $this->dispatcher->dispatch($event))->all();
 
         try {
             $rendered = Http::post($url, compact('visit', 'globals'))->throw()->body();
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $e) {
             throw new ServerRenderingException("SSR request failed!", previous: $e);
         }
 
