@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 
 
-class ServerRenderingRegisterGlobals
+class RegisteringGlobals
 {
     use InteractsWithSockets, SerializesModels;
 

@@ -6,7 +6,7 @@ namespace InteractiveVision\Visitor\Http\Node;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Http;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
-use InteractiveVision\Visitor\Events\ServerRenderingRegisterGlobals;
+use InteractiveVision\Visitor\Events\RegisteringGlobals;
 use InteractiveVision\Visitor\Exceptions\ServerRenderingException;
 use Throwable;
 
@@ -35,7 +35,7 @@ class ServerRenderingGateway
         $url = rtrim($this->config->getServerRenderingHost(), '/') . '/render';
 
         $this->dispatcher->dispatch(
-            $event = new ServerRenderingRegisterGlobals()
+            $event = new RegisteringGlobals()
         );
 
         $globals = $event->all();
