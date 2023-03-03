@@ -24,7 +24,7 @@ export async function createVisitor({ initial, resolve, render, setup }: CreateO
   }
 
   Object.keys(globals).forEach((key) => {
-    global[key] = globals[key];
+    globalThis[key] = globals[key];
   });
 
   const finder: Finder = (view) => Promise.resolve(resolve(view)).then(module => {
