@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.18
+
+### Patch Changes
+
+- c490b9a: Implement session flash messages.
+
 ## 0.1.17
 
 ### Patch Changes

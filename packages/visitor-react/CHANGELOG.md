@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.18
+
+### Patch Changes
+
+- c490b9a: Implement session flash messages.
+- Updated dependencies [c490b9a]
+  - @interactivevision/visitor@0.1.18
+
 ## 0.1.17
 
 ### Patch Changes
