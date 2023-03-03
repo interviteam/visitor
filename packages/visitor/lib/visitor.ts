@@ -39,6 +39,7 @@ export type Session = {
   is_authenticated: boolean;
   user: any;
   via_remember: boolean;
+  flash: Record<string, any>;
 };
 
 export type ComponentState<TProps extends Record<string, any> = {}> = {
@@ -56,6 +57,7 @@ export const defaultSession: Session = {
   is_authenticated: false,
   user: null,
   via_remember: false,
+  flash: {},
 };
 
 type RouterOptions = {

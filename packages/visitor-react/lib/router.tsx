@@ -15,7 +15,7 @@ export type RouterProps = {
 export const Router: FunctionComponent<RouterProps> = ({
   finder, component, session, location, visit,
 }) => {
-  const [_session, setSession] = useState(defaultSession);
+  const [_session, setSession] = useState(session || defaultSession);
   const [_shared, setShared] = useState(visit.shared || {});
   const [_location, setLocation] = useState(location);
 

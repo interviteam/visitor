@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Traits\Macroable;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\Events\RegisteringGlobals;
@@ -262,17 +263,22 @@ class VisitorFactory implements Responsable
 
     private function attachSession(array $data): array
     {
+        $data['session'] = [
+            'is_authenticated' => false,
+            'user' => null,
+            'via_remember' => true,
+            'flash' => (object) Session::get('_flash.old', []),
+        ];
+
         if ($this->guard === false) {
             return $data;
         }
 
         $guard = Auth::guard($this->guard);
 
-        $data['session'] = [
-            'is_authenticated' => $guard->check(),
-            'user' => $guard->user(),
-            'via_remember' => $guard->viaRemember(),
-        ];
+        $data['session']['is_authenticated'] = $guard->check();
+        $data['session']['user'] = $guard->user();
+        $data['session']['via_remember'] = $guard->viaRemember();
 
         return $data;
     }
