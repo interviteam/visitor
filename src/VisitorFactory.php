@@ -8,13 +8,13 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Session\Store;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Traits\Macroable;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\Events\RegisteringGlobals;
@@ -64,6 +64,9 @@ class VisitorFactory implements Responsable
     private Closure|array $props = [];
 
 
+    private Store $session;
+
+
     private array $shared = [];
 
 
@@ -76,10 +79,14 @@ class VisitorFactory implements Responsable
     private string $view = '';
 
 
-    public function __construct(VisitorConfiguration $config, Dispatcher $dispatcher)
-    {
+    public function __construct(
+        VisitorConfiguration $config,
+        Dispatcher           $dispatcher,
+        Store                $session
+    ) {
         $this->config = $config;
         $this->dispatcher = $dispatcher;
+        $this->session = $session;
     }
 
 
@@ -267,7 +274,7 @@ class VisitorFactory implements Responsable
             'is_authenticated' => false,
             'user' => null,
             'via_remember' => true,
-            'flash' => (object) Session::get('_flash.old', []),
+            'flash' => (object) $this->session->get('_flash.old', []),
         ];
 
         if ($this->guard === false) {
