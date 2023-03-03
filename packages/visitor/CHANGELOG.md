@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.19
+
+### Patch Changes
+
+- f7d5288: Fixed globals
+
 ## 0.1.18
 
 ### Patch Changes

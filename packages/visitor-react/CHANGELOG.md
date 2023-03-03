@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.19
+
+### Patch Changes
+
+- f7d5288: Fixed globals
+- Updated dependencies [f7d5288]
+  - @interactivevision/visitor@0.1.19
+
 ## 0.1.18
 
 ### Patch Changes
