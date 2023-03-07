@@ -9,6 +9,7 @@ use InteractiveVision\Globals\View\Directives\RenderVisitorGlobals;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorApp;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorHead;
+use InteractiveVision\Visitor\View\Directives\RenderVisitorScript;
 
 
 class VisitorServiceProvider extends ServiceProvider
@@ -38,8 +39,9 @@ class VisitorServiceProvider extends ServiceProvider
     protected function registerBladeDirectives(): void
     {
         $this->callAfterResolving('blade.compiler', function ($blade) {
-            $blade->directive('visitor', [RenderVisitorApp::class, 'compile']);
-            $blade->directive('head', [RenderVisitorHead::class, 'compile']);
+            $blade->directive('visitorApp', [RenderVisitorApp::class, 'compile']);
+            $blade->directive('visitorHead', [RenderVisitorHead::class, 'compile']);
+            $blade->directive('visitorScript', [RenderVisitorScript::class, 'compile']);
         });
     }
 
