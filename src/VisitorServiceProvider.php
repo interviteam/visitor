@@ -40,7 +40,6 @@ class VisitorServiceProvider extends ServiceProvider
         $this->callAfterResolving('blade.compiler', function ($blade) {
             $blade->directive('visitor', [RenderVisitorApp::class, 'compile']);
             $blade->directive('head', [RenderVisitorHead::class, 'compile']);
-            $blade->directive('globals', [RenderVisitorGlobals::class, 'compile']);
         });
     }
 
