@@ -5,9 +5,9 @@ namespace InteractiveVision\Visitor;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
+use InteractiveVision\Globals\View\Directives\RenderVisitorGlobals;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorApp;
-use InteractiveVision\Visitor\View\Directives\RenderVisitorGlobals;
 use InteractiveVision\Visitor\View\Directives\RenderVisitorHead;
 
 

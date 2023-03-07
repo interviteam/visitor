@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Traits\Macroable;
+use InteractiveVision\Globals\Facades\Globals;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
-use InteractiveVision\Visitor\Events\RegisteringGlobals;
 use InteractiveVision\Visitor\Http\Node\ServerRenderingGateway;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -129,14 +129,6 @@ class VisitorFactory implements Responsable
         $this->target = $url instanceof RedirectResponse ? $url->getTargetUrl() : $url;
 
         return $this;
-    }
-
-
-    public function registerGlobals(): array
-    {
-        return tap(new RegisteringGlobals(), function ($event) {
-            $this->dispatcher->dispatch($event);
-        })->all();
     }
 
 
@@ -262,7 +254,9 @@ class VisitorFactory implements Responsable
 
     private function attachGlobals(array $data): array
     {
-        $data['globals'] = $this->registerGlobals();
+        if (class_exists(Globals::class)) {
+            $data['globals'] = Globals::register()->all();
+        }
 
         return $data;
     }

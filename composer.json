@@ -10,6 +10,15 @@
             "email": "dev@interactivevision.pl"
         }
     ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@gitlab.com:interactivevision/framework/globals.git"
+        }
+    ],
+    "require-dev": {
+        "interactivevision/globals": "1.x-dev"
+    },
     "require": {
         "php": "^8.1",
         "ext-curl": "*",
@@ -19,6 +28,9 @@
         "illuminate/http": "^9.0",
         "illuminate/queue": "^9.51",
         "illuminate/support": "^9.0"
+    },
+    "suggest": {
+        "interactivevision/globals": "Easily provide JS globals into your visitor pages."
     },
     "autoload": {
         "psr-4": {
