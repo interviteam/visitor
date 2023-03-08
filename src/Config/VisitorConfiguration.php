@@ -15,12 +15,16 @@ class VisitorConfiguration
     private bool $enabled;
 
 
+    private mixed $port;
+
+
     private string $url;
 
 
     public function __construct(Repository $config)
     {
         $this->bundle = $config->get('visitor.ssr.bundle', 'bootstrap/ssr/ssr.mjs');
+        $this->port = $config->get('visitor.ssr.port', 2137);
         $this->url = $config->get('visitor.ssr.url', 'http://127.0.0.1:2137');
         $this->enabled = (bool) $config->get('visitor.ssr.enabled', false);
     }
@@ -39,6 +43,12 @@ class VisitorConfiguration
     public function getServerRenderingHost(): string
     {
         return $this->url;
+    }
+
+
+    public function getServerRenderingPort(): mixed
+    {
+        return $this->port;
     }
 
 
