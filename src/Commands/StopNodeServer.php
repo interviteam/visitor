@@ -17,9 +17,7 @@ class StopNodeServer extends Command
 
     public function handle(VisitorConfiguration $config): int
     {
-        $url = rtrim($config->getServerRenderingHost()) . '/shutdown';
-
-        $ch = curl_init($url);
+        $ch = curl_init($config->getServerShutdownUrl());
         curl_exec($ch);
 
         if (curl_error($ch) !== 'Empty reply from server') {
