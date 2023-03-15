@@ -217,7 +217,7 @@ class VisitorFactory implements Responsable
             return Response::noContent(302, ['X-Visitor-Location' => $this->target]);
         }
 
-        $this->location = $request->url();
+        $this->location = $request->fullUrl();
         $this->cacheKey = $this->cacheKey ?: $this->location;
 
         $data = $this->resolveVisitData();
@@ -331,10 +331,11 @@ class VisitorFactory implements Responsable
         // We use separate cache store since we always want to load data
         // from cache, when views are loaded only on initial page loads.
         if ($this->mode === self::MODE_SSG && App::environment('production')) {
-            return Cache::driver('visitor.data')->rememberForever(
-                key: $this->cacheKey,
-                callback: fn() => $this->makeData()
-            );
+            // TODO: Temporarily disable caching, until some solution for cache keys is found.
+            // return Cache::driver('visitor.data')->rememberForever(
+            //     key: $this->cacheKey,
+            //     callback: fn() => $this->makeData()
+            // );
         }
 
         // SSR should be used when you need indexing, but data changes
@@ -360,10 +361,11 @@ class VisitorFactory implements Responsable
         // only data will be delivered for client to render client side.
         // This case will be used only for initial page loads.
         if ($this->mode === self::MODE_SSG && App::environment('production')) {
-            return Cache::driver('visitor.views')->rememberForever(
-                key: $this->cacheKey,
-                callback: fn() => $this->sendServerRenderingRequest($data)
-            );
+            // TODO: Temporarily disable caching, until some solution for cache keys is found.
+            // return Cache::driver('visitor.views')->rememberForever(
+            //     key: $this->cacheKey,
+            //     callback: fn() => $this->sendServerRenderingRequest($data)
+            // );
         }
 
         // SSR mode is simply the same but without caching.
