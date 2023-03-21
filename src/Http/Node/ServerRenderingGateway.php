@@ -3,7 +3,6 @@
 namespace InteractiveVision\Visitor\Http\Node;
 
 
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Http;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
 use InteractiveVision\Visitor\Exceptions\ServerRenderingException;
@@ -15,13 +14,9 @@ class ServerRenderingGateway
     private VisitorConfiguration $config;
 
 
-    private Dispatcher $dispatcher;
-
-
-    public function __construct(Dispatcher $dispatcher, VisitorConfiguration $config)
+    public function __construct(VisitorConfiguration $config)
     {
         $this->config = $config;
-        $this->dispatcher = $dispatcher;
     }
 
 

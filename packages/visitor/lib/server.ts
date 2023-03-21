@@ -1,8 +1,8 @@
 import { createServer, IncomingMessage } from 'http';
 import * as process from 'process';
-import { Visit } from './visitor';
+import { State } from './request';
 
-type AppCallback = (visit: Visit) => Promise<string>
+type AppCallback = (state: State) => Promise<string>
 type RouteHandler = (request: IncomingMessage) => Promise<unknown>
 
 const readableToString: (readable: IncomingMessage) => Promise<string> = (readable) => new Promise((resolve, reject) => {

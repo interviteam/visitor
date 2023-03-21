@@ -1,9 +1,37 @@
-import { Visit, Session } from './visitor';
+export type Meta = {
+  type: 'title',
+  content: string;
+} | {
+  type: 'meta',
+  name: string;
+  content: string;
+} | {
+  type: 'snippet',
+  content: string;
+};
 
-export type VisitorResponse = {
+export type Session = {
+  is_authenticated: boolean;
+  user: any;
+  via_remember: boolean;
+  flash: Record<string, any>;
+};
+
+export type State = {
+  // Request query parameters processed from backend.
+  query: Record<string, any>;
+  // Session state from server.
   session: Session;
+  // Location returned by backend.
   location: string;
-  visit: Visit;
+  // Path to view component for given page.
+  view: string;
+  // Shared props updates.
+  shared: Record<string, any> | undefined;
+  // Props passed to component once it's resolved.
+  props: Record<string, any> & { meta?: Meta[] };
+  // Page assets version.
+  version: string;
 }
 
 export class Request {
@@ -19,7 +47,7 @@ export class Request {
     this.xhr.abort();
   }
 
-  public send(): Promise<VisitorResponse> {
+  public send(): Promise<State> {
     return new Promise((resolve, reject) => {
       this.xhr.responseType = 'json';
 
@@ -35,7 +63,7 @@ export class Request {
         }
 
         if (this.isVisitResponse()) {
-          resolve(this.xhr.response as VisitorResponse);
+          resolve(this.xhr.response as State);
         }
 
         if (this.isClientError() || this.isServerError()) {

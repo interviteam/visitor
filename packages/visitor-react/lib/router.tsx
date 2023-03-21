@@ -1,89 +1,39 @@
-import { FunctionComponent, useState, useCallback, useEffect, createElement } from 'react';
-import { Finder, Visit, router, defaultSession, Session } from '@interactivevision/visitor';
-import { LocationContext } from './location';
-import { SessionContext } from './session';
-import { SharedContext } from './shared';
+import { useState, useCallback, useEffect, createElement } from 'react';
+import { Finder, State, router, defaultSession } from '@interactivevision/visitor';
+import { VisitorContext } from './context';
 
-export type RouterProps = {
+export type RouterProps = State & {
   finder: Finder;
   component: any;
-  location: string;
-  session: Session;
-  visit: Visit;
 };
 
-export const Router: FunctionComponent<RouterProps> = ({
-  finder, component, session, location, visit,
-}) => {
-  const [_session, setSession] = useState(session || defaultSession);
-  const [_shared, setShared] = useState(visit.shared || {});
-  const [_location, setLocation] = useState(location);
+export function Router({ finder, component, ...state }: RouterProps) {
+  const [session, setSession] = useState(state.session || defaultSession);
+  const [shared, setShared] = useState(state.shared || {});
+  const [location, setLocation] = useState(state.location);
+  const [query, setQuery] = useState(state.query || {});
+  const [current, setCurrent] = useState({ component: component, props: state.props });
 
-  const [current, setCurrent] = useState({
-    component: component,
-    props: visit.props,
-  });
-
-  const onLocationUpdate = useCallback((location) => {
-    setLocation(location);
-  }, []);
-
-  const onComponentUpdate = useCallback((component) => {
-    setCurrent(component);
-  }, []);
-
-  const onSharedUpdate = useCallback((shared) => {
-    setShared((prev) => ({ ...prev, ...shared }));
-  }, []);
-
-  const onSessionUpdate = useCallback((session) => {
-    setSession(session);
+  const update = useCallback(({ component, state }) => {
+    setCurrent({ component: component, props: state.props });
+    setQuery(state.query);
+    setLocation(state.location);
+    setSession(state.session);
+    setShared((prev) => ({ ...prev, ...state.shared }));
   }, []);
 
   useEffect(() => {
-    router.init({
-      visit,
-      location,
-      session,
-      finder,
-      onLocationUpdate,
-      onComponentUpdate,
-      onSharedUpdate,
-      onSessionUpdate,
-    });
+    router.init({ state, finder, update });
   }, []);
 
-  function wrapWithContext(children) {
-    return (
-      <SessionContext.Provider value={_session}>
-        <SharedContext.Provider value={_shared}>
-          <LocationContext.Provider value={_location}>
-            {children}
-          </LocationContext.Provider>
-        </SharedContext.Provider>
-      </SessionContext.Provider>
-    );
-  }
+  const parsed = location.replace(/[^a-z0-9]/ig, '-');
+  const key = `visitor-page-${parsed}`;
+  const layout = current.component.layout;
+  const page = createElement(current.component, { key, ...current.props });
 
-  function wrapWithLayout(layout, children) {
-    return createElement(layout, _shared, children);
-  }
-
-  function createPage() {
-    return createElement(
-      current.component,
-      {
-        key: `visitor-page-${_location.replace(/[^a-z0-9]/ig, '-')}`,
-        ...current.props,
-      },
-    );
-  }
-
-  if (current.component.layout) {
-    return wrapWithContext(
-      wrapWithLayout(current.component.layout, createPage()),
-    );
-  }
-
-  return wrapWithContext(createPage());
-};
+  return (
+    <VisitorContext.Provider value={{ session, shared, location, query }}>
+      {layout ? createElement(layout, shared, page) : page}
+    </VisitorContext.Provider>
+  );
+}

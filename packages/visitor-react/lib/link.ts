@@ -1,6 +1,6 @@
 import React, { DetailedHTMLProps, HTMLAttributes, FunctionComponent, useCallback, createElement, useState, useMemo, ReactNode, ReactElement } from 'react';
 import { router } from '@interactivevision/visitor';
-import { useLocation } from './location';
+import { useLocation } from './context';
 
 type LinkAnchorProps = DetailedHTMLProps<HTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>;
 type LinkRendererProps = { href: string, onClick: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void };
@@ -8,7 +8,7 @@ type LinkChildrenRenderer = (options: { isActive: boolean, isPending: boolean, p
 type LinkClassNameBuilder = (options: { isActive: boolean, isPending: boolean }) => string | undefined;
 type LinkProps = Omit<LinkAnchorProps, 'href' | 'className' | 'children'> & {
   href: string;
-  end?: boolean
+  end?: boolean;
   className?: LinkClassNameBuilder | string | undefined;
   children?: LinkChildrenRenderer | ReactNode | undefined;
 };

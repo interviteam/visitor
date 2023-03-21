@@ -1,6 +1,6 @@
 import { ComponentType } from 'react';
 import type { renderToString } from 'react-dom/server';
-import { Finder, Visit } from '@interactivevision/visitor';
+import { Finder, State } from '@interactivevision/visitor';
 import { RouterProps, Router } from './router';
 
 type SetupOptions = {
@@ -9,7 +9,7 @@ type SetupOptions = {
 }
 
 type CreateOptions = {
-  initial?: Visit | undefined;
+  initial?: State | undefined;
   render?: typeof renderToString;
   resolve: (name: string) => Promise<any>;
   setup: (options: SetupOptions) => any;
@@ -17,9 +17,9 @@ type CreateOptions = {
 
 export async function createVisitor({ initial, resolve, render, setup }: CreateOptions) {
   const isServer = typeof window === 'undefined';
-  const { session, location, visit, globals } = initial || JSON.parse(document.getElementById('__VISITOR__')?.textContent || '');
+  const { globals, ...state } = initial || readInitials();
 
-  if (!visit) {
+  if (!state || !globals) {
     throw new Error('No initial page data was found! Make sure you have used required directives within your Blade root view.');
   }
 
@@ -27,12 +27,14 @@ export async function createVisitor({ initial, resolve, render, setup }: CreateO
     globalThis[key] = globals[key];
   });
 
-  const finder: Finder = (view) => Promise.resolve(resolve(view)).then(module => {
-    return module.default || module;
-  });
+  const finder: Finder = (view) => {
+    return Promise.resolve(resolve(view)).then((module) => {
+      return module.default || module;
+    });
+  };
 
-  const app = await finder(visit.view).then((component) => {
-    return setup({ router: Router, props: { finder, component, session, location, visit } });
+  const app = await finder(state.view).then((component) => {
+    return setup({ router: Router, props: { finder, component, ...state } });
   });
 
   if (!isServer) {
@@ -44,4 +46,8 @@ export async function createVisitor({ initial, resolve, render, setup }: CreateO
   }
 
   throw new Error('You must provide "render" function in in SSR context! Use "renderToString" function from "react-dom/server" package.');
+}
+
+function readInitials() {
+  return JSON.parse(document.getElementById('__VISITOR__')?.textContent || '');
 }

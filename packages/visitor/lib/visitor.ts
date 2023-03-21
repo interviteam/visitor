@@ -1,57 +1,14 @@
 import { ComponentType } from 'react';
-import { Request, VisitorResponse } from './request';
+import { Request, Session, State, Meta } from './request';
 
-type MetaTitle = {
-  type: 'title',
-  content: string;
-}
 
-type MetaTag = {
-  type: 'meta',
-  name: string;
-  content: string;
-}
-
-type MetaSnippet = {
-  type: 'snippet',
-  content: string;
-}
-
-export type MetaData = MetaTitle | MetaTag | MetaSnippet;
-
-export type Visit = {
-  // Path to view component for given page.
-  view: string;
-  // Shared props updates.
-  shared: Record<string, any> | undefined;
-  // Props passed to component once it's resolved.
-  props: Record<string, any> & { meta?: MetaData[] };
-  // Page assets version.
-  version: string;
-};
-
-export type HistoryState = {
-  location: string;
-  visit: Visit;
-};
-
-export type Session = {
-  is_authenticated: boolean;
-  user: any;
-  via_remember: boolean;
-  flash: Record<string, any>;
-};
-
-export type ComponentState<TProps extends Record<string, any> = {}> = {
+export type ComponentState = {
   component: any;
-  props: TProps;
+  state: State;
 };
 
 export type Finder = (view: string) => Promise<ComponentType>;
-export type SharedHandler = (shared: any) => void;
-export type LocationHandler = (location: string) => void;
-export type ComponentHandler = (state: ComponentState) => void;
-export type SessionHandler = (session: Session) => void;
+export type UpdateHandler = (state: ComponentState) => void;
 
 export const defaultSession: Session = {
   is_authenticated: false,
@@ -61,36 +18,25 @@ export const defaultSession: Session = {
 };
 
 type RouterOptions = {
-  session: Session;
-  location: string;
-  visit: Visit;
+  state: State;
   finder: Finder;
-  onLocationUpdate: LocationHandler;
-  onComponentUpdate: ComponentHandler;
-  onSharedUpdate: SharedHandler;
-  onSessionUpdate: SessionHandler;
+  update: UpdateHandler;
 }
 
 export class Visitor {
   protected finder!: Finder;
-  protected onLocationUpdate!: LocationHandler;
-  protected onSharedUpdate!: SharedHandler;
-  protected onComponentUpdate!: ComponentHandler;
-  protected onSessionUpdate!: SessionHandler;
+  protected onUpdate!: UpdateHandler;
 
   protected location!: string;
   protected session!: Session;
-  protected visit!: Visit;
+  protected state!: State;
   protected request: Request | undefined;
 
-  public init({ session, location, visit, finder, onLocationUpdate, onComponentUpdate, onSharedUpdate, onSessionUpdate }: RouterOptions): void {
+  public init({ state, finder, update }: RouterOptions): void {
     this.finder = finder;
-    this.onLocationUpdate = onLocationUpdate;
-    this.onComponentUpdate = onComponentUpdate;
-    this.onSharedUpdate = onSharedUpdate;
-    this.onSessionUpdate = onSessionUpdate;
+    this.onUpdate = update;
 
-    this.initializeFirstVisit(visit, location, session);
+    this.initializeFirstVisit(state);
     this.initializeStateEvents();
   };
 
@@ -98,17 +44,15 @@ export class Visitor {
     window.addEventListener('popstate', this.handlePopstateEvent.bind(this));
   }
 
-  protected initializeFirstVisit(visit: Visit, location: string, session: Session) {
-    this.updateSession(session);
-
-    this.replaceState({ visit, location });
+  protected initializeFirstVisit(state: State) {
+    this.replaceState(state);
   }
 
   protected fireEvent(name: string, options = {}) {
     return document.dispatchEvent(new CustomEvent(`visitor:${name}`, options));
   }
 
-  public dispatch(url: string, replace: boolean = false): Promise<VisitorResponse> {
+  public dispatch(url: string, replace: boolean = false): Promise<State> {
     if (this.request !== undefined) {
       this.request.abort();
     }
@@ -118,15 +62,7 @@ export class Visitor {
 
     return this.request.send()
       .then((res) => {
-        this.updateSession(res.session);
-
-        if (replace) {
-          this.replaceState(res);
-        } else {
-          this.pushState(res);
-        }
-
-        this.updateComponent(res.visit);
+        this.updateComponent(res, replace);
 
         return res;
       })
@@ -144,64 +80,55 @@ export class Visitor {
       });
   }
 
-  public reload(): Promise<VisitorResponse> {
+  public reload(): Promise<State> {
     return this.dispatch(this.location, true);
   }
 
-  protected pushState({ visit, location }: HistoryState) {
-    this.visit = visit;
+  protected pushState(state: State) {
+    this.state = state;
 
-    window.history.pushState({ visit, location }, '', location);
-    this.updateLocation(location);
+    window.history.pushState(state, '', state.location);
 
-    return visit;
+    return state;
   }
 
-  protected replaceState({ visit, location }: HistoryState) {
-    this.visit = visit;
+  protected replaceState(state: State) {
+    this.state = state;
 
-    window.history.replaceState({ location, visit }, '', location);
-    this.updateLocation(location);
+    window.history.replaceState(state, '', state.location);
 
-    return visit;
+    return state;
   }
 
   protected handlePopstateEvent(event: PopStateEvent) {
-    if (event.state !== null && event.state.location && event.state.visit) {
-      this.updateComponent(event.state.visit);
-      this.updateLocation(event.state.location);
+    if (event.state !== null) {
+      this.updateComponent(event.state);
     } else {
-      this.replaceState({ visit: this.visit, location: this.location });
+      this.replaceState(this.state);
     }
   }
 
-  protected updateSession(session: Session) {
-    this.session = session;
-    this.onSessionUpdate.call(this, session);
-  }
-
-  protected updateLocation(location: string) {
-    if (this.location === location) {
-      return;
-    }
-
-    this.location = location;
-    this.onLocationUpdate.call(this, location);
-  }
-
-  protected updateComponent(visit: Visit) {
-    this.finder(visit.view).then((component) => {
+  protected updateComponent(state: State, replace: boolean = false) {
+    this.finder(state.view).then((component) => {
       this.resetScrollPosition();
-      this.updateHead(visit.props.meta);
-      this.onComponentUpdate.call(this, { component, props: visit.props });
+      this.updateHead(state.props.meta);
+
+      if (replace) {
+        this.replaceState(state);
+      } else {
+        this.pushState(state);
+      }
+
+      this.onUpdate.call(this, { component, state });
     });
   }
 
   protected resetScrollPosition() {
-    window.scrollTo(0, 0);
+    // @ts-ignore
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }
 
-  protected updateHead(meta?: MetaData[]) {
+  protected updateHead(meta?: Meta[]) {
     // Do not update meta tags until new one arrives.
     // Otherwise, you'll end with page without metadata.
     if (!meta) {

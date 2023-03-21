@@ -8,6 +8,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Session\Store;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
@@ -220,7 +221,7 @@ class VisitorFactory implements Responsable
         $this->location = $request->fullUrl();
         $this->cacheKey = $this->cacheKey ?: $this->location;
 
-        $data = $this->resolveVisitData();
+        $data = $this->resolveVisitData($request);
 
         // For "X-Visitor" requests we simply return a JSON data with visit
         // details. These requests are sent when in hydrated SPA already,
@@ -295,17 +296,7 @@ class VisitorFactory implements Responsable
     }
 
 
-    private function makeData(): array
-    {
-        return [
-            'session' => $this->makeAnonymousSession(),
-            'location' => $this->location,
-            'visit' => $this->makeVisit(),
-        ];
-    }
-
-
-    private function makeVisit(): array
+    private function makeVisitorState(Request $request): array
     {
         // Resolve closure before return statement so any other calls
         // to this service within closure might be done.
@@ -317,6 +308,9 @@ class VisitorFactory implements Responsable
         ));
 
         return [
+            'query' => (object) $request->query(),
+            'session' => $this->makeAnonymousSession(),
+            'location' => $this->location,
             'view' => $component,
             'shared' => $this->shared,
             'props' => $props,
@@ -325,23 +319,30 @@ class VisitorFactory implements Responsable
     }
 
 
-    private function resolveVisitData(): array
+    private function resolveVisitData(Request $request): array
     {
+        $isStaticMode = $this->mode === self::MODE_SSG;
+        $isProduction = App::environment('production');
+
         // For SSG we want to cache built data to speed up server response.
-        // We use separate cache store since we always want to load data
-        // from cache, when views are loaded only on initial page loads.
-        if ($this->mode === self::MODE_SSG && App::environment('production')) {
-            // TODO: Temporarily disable caching, until some solution for cache keys is found.
-            // return Cache::driver('visitor.data')->rememberForever(
-            //     key: $this->cacheKey,
-            //     callback: fn() => $this->makeData()
-            // );
+        // Cache should be involved only on initial request. For any following
+        // visitor request it should avoid cache. This will solve issues with
+        // pagination and filters on static pages.
+        //
+        // We use separate cache store, to optimize cache better.
+        // States might be large for specific views, so it's better to keep them
+        // separate and be able to configure `file` driver instead `redis`.
+        if (! $request->visitor() && $isStaticMode && $isProduction) {
+            return Cache::driver('visitor.data')->rememberForever(
+                key: $this->cacheKey,
+                callback: fn() => $this->makeVisitorState($request)
+            );
         }
 
         // SSR should be used when you need indexing, but data changes
         // so often there is no point to cache anything.
         // CSR should be used for other cases.
-        return $this->makeData();
+        return $this->makeVisitorState($request);
     }
 
 
@@ -361,11 +362,10 @@ class VisitorFactory implements Responsable
         // only data will be delivered for client to render client side.
         // This case will be used only for initial page loads.
         if ($this->mode === self::MODE_SSG && App::environment('production')) {
-            // TODO: Temporarily disable caching, until some solution for cache keys is found.
-            // return Cache::driver('visitor.views')->rememberForever(
-            //     key: $this->cacheKey,
-            //     callback: fn() => $this->sendServerRenderingRequest($data)
-            // );
+            return Cache::driver('visitor.views')->rememberForever(
+                key: $this->cacheKey,
+                callback: fn() => $this->sendServerRenderingRequest($data),
+            );
         }
 
         // SSR mode is simply the same but without caching.
