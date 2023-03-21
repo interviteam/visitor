@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.20
+
+### Patch Changes
+
+- Refactor visitor and improve performance with setState batching.
+- Updated dependencies
+  - @interactivevision/visitor@0.1.20
+
 ## 0.1.19
 
 ### Patch Changes
