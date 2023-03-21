@@ -8,7 +8,7 @@ class RenderVisitorHead
     public static function compile(): string
     {
         $template = '
-            <?php foreach($data[\'visit\'][\'props\'][\'meta\'] ?? [] as $meta): ?>
+            <?php foreach($data[\'props\'][\'meta\'] ?? [] as $meta): ?>
                 <?php if($meta[\'type\'] === \'title\'): ?>
                     <title visitor><?php echo $meta[\'content\'] ?></title>
                 <?php endif; ?>
