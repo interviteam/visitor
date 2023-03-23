@@ -1,18 +1,18 @@
 import { Response } from './response';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type Body = XMLHttpRequestBodyInit | null;
+export type Body = XMLHttpRequestBodyInit | Object | null;
 
 export class Request {
   protected method: Method;
   protected url: string;
   protected xhr: XMLHttpRequest;
-  protected body: Body;
+  protected body: XMLHttpRequestBodyInit;
 
   constructor(method: Method, url: string, body: Body = null) {
     this.method = method;
     this.url = url;
-    this.body = body;
+    this.body = this.transform(body);
     this.xhr = new XMLHttpRequest();
   }
 
@@ -52,6 +52,18 @@ export class Request {
 
       this.xhr.send(this.body);
     });
+  }
+
+  protected transform(body) {
+    if (body instanceof Blob || body instanceof ArrayBuffer || body instanceof FormData || body instanceof URLSearchParams) {
+      return body;
+    }
+
+    if (typeof body === 'string') {
+      return body;
+    }
+
+    return JSON.stringify(body);
   }
 
   protected readCookie(name): string {
