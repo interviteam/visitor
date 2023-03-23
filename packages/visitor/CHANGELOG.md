@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.22
+
+### Patch Changes
+
+- 5eea6f5: Fix visitor-react package configuration.
+
 ## 0.1.21
 
 ### Patch Changes
