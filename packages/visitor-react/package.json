@@ -13,25 +13,18 @@
         "url": "https://github.com/interviteam/visitor/issuess"
     },
     "type": "module",
-    "module": "dist/main.js",
-    "main": "dist/main.cjs",
-    "types": "types/main.d.ts",
+    "module": "dist/visitor-react.js",
+    "main": "dist/visitor-react.cjs",
+    "types": "types/visitor-react.d.ts",
     "files": [
         "dist",
         "types"
     ],
     "exports": {
         ".": {
-            "types": "./types/main.d.js",
-            "import": "./dist/main.js",
-            "require": "./dist/main.cjs"
-        }
-    },
-    "typesVersions": {
-        "*": {
-            "*": [
-                "types/index.d.ts"
-            ]
+            "types": "./types/visitor-react.d.js",
+            "import": "./dist/visitor-react.js",
+            "require": "./dist/visitor-react.cjs"
         }
     },
     "devDependencies": {
@@ -41,7 +34,7 @@
         "typescript": "^4.8.2"
     },
     "dependencies": {
-        "@interactivevision/visitor": "^0.1.21",
+        "@interactivevision/visitor": "*",
         "react": "^18.0.0",
         "react-dom": "^18.0.0"
     },
