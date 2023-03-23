@@ -38,12 +38,11 @@ export class Request {
 
         const response = new Response(this.xhr);
 
-        if (response.visitor) {
-          resolve(response);
-          return;
+        if (response.failed) {
+          reject(response);
         }
 
-        reject(response);
+        resolve(response);
       };
 
       this.xhr.onerror = () => {

@@ -41,7 +41,7 @@ class VisitorFactory implements Responsable
     private ?string $cacheKey = null;
 
 
-    private string $component;
+    private ?string $component = null;
 
 
     private VisitorConfiguration $config;
@@ -62,16 +62,22 @@ class VisitorFactory implements Responsable
     private string $mode = self::MODE_CSR;
 
 
+    private bool $partial = false;
+
+
     private Closure|array $props = [];
+
+
+    private ?string $redirect = null;
+
+
+    private bool $reload = false;
 
 
     private Store $session;
 
 
     private array $shared = [];
-
-
-    private ?string $target = null;
 
 
     private string $version = '';
@@ -125,9 +131,28 @@ class VisitorFactory implements Responsable
     }
 
 
+    public function hardRedirect(RedirectResponse|string $url): static
+    {
+        $this->reload = true;
+        $this->redirect($url);
+
+        return $this;
+    }
+
+
+    public function partial(array $props): static
+    {
+        $this->partial = true;
+        $this->props = array_merge_recursive($this->props, $props);
+
+        return $this;
+    }
+
+
     public function redirect(RedirectResponse|string $url): static
     {
-        $this->target = $url instanceof RedirectResponse ? $url->getTargetUrl() : $url;
+        $this->partial = true;
+        $this->redirect = $url instanceof RedirectResponse ? $url->getTargetUrl() : $url;
 
         return $this;
     }
@@ -211,13 +236,6 @@ class VisitorFactory implements Responsable
 
     public function toResponse($request): SymfonyResponse
     {
-        // Redirects always goes first. Visitor router component detects
-        // the `X-Visitor-Location` header and follows redirects until
-        // proper visit response is received.
-        if ($this->target) {
-            return Response::noContent(302, ['X-Visitor-Location' => $this->target]);
-        }
-
         $this->location = $request->fullUrl();
         $this->cacheKey = $this->cacheKey ?: $this->location;
 
@@ -227,7 +245,13 @@ class VisitorFactory implements Responsable
         // details. These requests are sent when in hydrated SPA already,
         // so everything will be rendered on client side.
         if ($request->visitor()) {
-            return Response::json($this->attachSession($data), 200, ['X-Visitor' => 'true']);
+            $headers = ['X-Visitor' => 'true'];
+
+            if ($this->partial) {
+                $headers['X-Partial'] = 'true';
+            }
+
+            return Response::json($this->attachSession($data), 200, $headers);
         }
 
         // We want to attach globals for the initial page load only.
@@ -303,11 +327,15 @@ class VisitorFactory implements Responsable
         $props = value($this->props);
         $component = Arr::get($props, 'component', $this->component);
 
-        throw_if(empty($component), new LogicException(
+        throw_if(! $this->partial && empty($component), new LogicException(
             'You must provide component within props when resolving view lazily.'
         ));
 
         return [
+            'redirect' => $this->redirect ? [
+                'target' => $this->redirect,
+                'reload' => $this->reload,
+            ] : null,
             'query' => (object) $request->query(),
             'session' => $this->makeAnonymousSession(),
             'location' => $this->location,
@@ -332,7 +360,7 @@ class VisitorFactory implements Responsable
         // We use separate cache store, to optimize cache better.
         // States might be large for specific views, so it's better to keep them
         // separate and be able to configure `file` driver instead `redis`.
-        if (! $request->visitor() && $isStaticMode && $isProduction) {
+        if (! $request->visitor() && ! $this->partial && $isStaticMode && $isProduction) {
             return Cache::driver('visitor.data')->rememberForever(
                 key: $this->cacheKey,
                 callback: fn() => $this->makeVisitorState($request)

@@ -1,8 +1,51 @@
 import { ComponentType } from 'react';
 import { Request, Method, Body } from './request';
-import { State, Session, Meta, Response } from './response';
+import { Response } from './response';
 
-export type { State };
+export type Meta = {
+  type: 'title',
+  content: string;
+} | {
+  type: 'meta',
+  name: string;
+  content: string;
+} | {
+  type: 'snippet',
+  content: string;
+};
+
+export type Session = {
+  is_authenticated: boolean;
+  user: any;
+  via_remember: boolean;
+  flash: Record<string, any>;
+};
+
+export type State = {
+  // Redirect URL to perform after partial state update.
+  redirect?: { target: string; reload: boolean; } | null;
+
+  // Request query parameters processed from backend.
+  query: Record<string, any>;
+
+  // Session state from server.
+  session: Session;
+
+  // Location returned by backend.
+  location: string;
+
+  // Path to view component for given page.
+  view: string;
+
+  // Shared props updates.
+  shared: Record<string, any> | undefined;
+
+  // Props passed to component once it's resolved.
+  props: Record<string, any> & { meta?: Meta[] };
+
+  // Page assets version.
+  version: string;
+}
 
 export type ComponentWithLayout = ComponentType & {
   layout?: any;
@@ -56,7 +99,7 @@ class Visitor {
     return document.dispatchEvent(new CustomEvent(`visitor:${name}`, options));
   }
 
-  public dispatch({ method, url, body = null, replace = false }: Options): Promise<State> {
+  public dispatch({ method, url, body = null, replace = false }: Options) {
     if (this.request !== undefined) {
       this.request.abort();
     }
@@ -70,7 +113,11 @@ class Visitor {
           return this.handlePartialResponse(res);
         }
 
-        return this.updateComponent(this.mergeState(res.data), replace);
+        if (res.visitor) {
+          return this.updateComponent(this.mergeState(res.data), replace);
+        }
+
+        return res.data;
       })
       .catch((error) => {
         console.error(error);
@@ -92,7 +139,12 @@ class Visitor {
     // Now once state is merged, we can call redirect when provided.
     // Otherwise, we can simply update the component with fresh state.
     if (res.redirect) {
-      return this.dispatch({ method: 'GET', url: res.redirect, replace: false });
+      if (res.redirect.reload) {
+        window.location.href = res.redirect.target;
+        return;
+      }
+
+      return this.dispatch({ method: 'GET', url: res.redirect.target, replace: false });
     }
 
     return this.updateComponent(this.state, true);
@@ -100,7 +152,7 @@ class Visitor {
 
   protected mergeState(fresh: State, merge: boolean = false): State {
     this.state = {
-      view: this.state.view,
+      view: merge ? this.state.view : fresh.view,
       query: fresh.query,
       session: fresh.session,
       location: fresh.location,

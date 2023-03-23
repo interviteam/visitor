@@ -1,6 +1,6 @@
 import * as process from 'process';
 import { createServer, IncomingMessage } from 'http';
-import { State } from './response';
+import type { State } from './visitor';
 
 type AppCallback = (state: State) => Promise<string>
 type RouteHandler = (request: IncomingMessage) => Promise<unknown>
