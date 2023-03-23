@@ -7,13 +7,13 @@ export class Request {
   protected method: Method;
   protected url: string;
   protected xhr: XMLHttpRequest;
-  protected body: XMLHttpRequestBodyInit;
+  protected body: Body;
 
   constructor(method: Method, url: string, body: Body = null) {
     this.xhr = new XMLHttpRequest();
     this.method = method;
     this.url = url;
-    this.body = this.transform(body);
+    this.body = body;
   }
 
   public abort(): void {
@@ -50,7 +50,7 @@ export class Request {
         reject(new Response(this.xhr));
       };
 
-      this.xhr.send(this.body);
+      this.xhr.send(this.transform(this.body));
     });
   }
 
