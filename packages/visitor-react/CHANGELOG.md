@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.26
+
+### Patch Changes
+
+- 1d29be1: Fixes and hard reload with redirects
+- Updated dependencies [1d29be1]
+  - @interactivevision/visitor@0.1.26
+
 ## 0.1.25
 
 ### Patch Changes
