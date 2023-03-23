@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.25
+
+### Patch Changes
+
+- 1d78dc9: Add proper Content-Type header when sending Objects.
+- Updated dependencies [1d78dc9]
+  - @interactivevision/visitor@0.1.25
+
 ## 0.1.24
 
 ### Patch Changes
