@@ -13,49 +13,41 @@
         "url": "https://github.com/interviteam/visitor/issuess"
     },
     "type": "module",
-    "module": "dist/index.esm.js",
-    "main": "dist/index.js",
-    "types": "types/index.d.ts",
+    "module": "dist/visitor.js",
+    "main": "dist/visitor.cjs",
+    "types": "types/visitor.d.ts",
     "files": [
         "dist",
         "types"
     ],
     "exports": {
         ".": {
-            "types": "./types/index.d.js",
-            "import": "./dist/index.esm.js",
-            "require": "./dist/index.js"
+            "types": "./types/visitor.d.js",
+            "import": "./dist/visitor.js",
+            "require": "./dist/visitor.cjs"
         },
         "./server": {
             "types": "./types/server.d.js",
-            "import": "./dist/server.esm.js",
-            "require": "./dist/server.js"
+            "import": "./dist/server.js",
+            "require": "./dist/server.cjs"
         }
     },
     "typesVersions": {
         "*": {
-            "*": [
-                "types/index.d.ts"
-            ],
             "server": [
                 "types/server.d.ts"
             ]
         }
     },
     "scripts": {
-        "dev": "./build.js --watch",
-        "build": "./build.js",
+        "dev": "vite --watch",
         "clean": "rm -rf types && rm -rf dist",
-        "types": "tsc --emitDeclarationOnly"
+        "types": "tsc --emitDeclarationOnly",
+        "build": "vite build"
     },
     "devDependencies": {
         "@types/node": "^18.11.18",
-        "esbuild": "^0.16.13",
-        "esbuild-node-externals": "^1.6.0",
         "tslib": "^2.4.0",
         "typescript": "^4.8.2"
-    },
-    "dependencies": {
-        "nprogress": "^0.2.0"
     }
 }

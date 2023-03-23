@@ -13,18 +13,18 @@
         "url": "https://github.com/interviteam/visitor/issuess"
     },
     "type": "module",
-    "module": "dist/index.esm.js",
-    "main": "dist/index.js",
-    "types": "types/index.d.ts",
+    "module": "dist/main.js",
+    "main": "dist/main.cjs",
+    "types": "types/main.d.ts",
     "files": [
         "dist",
         "types"
     ],
     "exports": {
         ".": {
-            "types": "./types/index.d.js",
-            "import": "./dist/index.esm.js",
-            "require": "./dist/index.js"
+            "types": "./types/main.d.js",
+            "import": "./dist/main.js",
+            "require": "./dist/main.cjs"
         }
     },
     "typesVersions": {
@@ -35,22 +35,20 @@
         }
     },
     "devDependencies": {
-        "@types/react": "^18.0.18",
-        "@types/react-dom": "^18.0.6",
+        "@types/react": "^18.0.0",
+        "@types/react-dom": "^18.0.0",
         "tslib": "^2.4.0",
-        "typescript": "^4.8.2",
-        "esbuild": "^0.16.13",
-        "esbuild-node-externals": "^1.6.0"
+        "typescript": "^4.8.2"
     },
     "dependencies": {
-        "@interactivevision/visitor": "*",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0"
+        "@interactivevision/visitor": "^0.1.0",
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
     },
     "scripts": {
-        "dev": "./build.js --watch",
-        "build": "./build.js",
+        "dev": "vite --watch",
         "clean": "rm -rf types && rm -rf dist",
-        "types": "tsc --emitDeclarationOnly"
+        "types": "tsc --emitDeclarationOnly",
+        "build": "vite build"
     }
 }

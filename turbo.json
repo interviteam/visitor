@@ -5,21 +5,11 @@
             "cache": false
         },
         "types": {
-            "dependsOn": [
-                "^clean"
-            ],
-            "outputs": [
-                "types/**"
-            ],
+            "dependsOn": ["^clean"],
             "cache": false
         },
         "build": {
-            "dependsOn": [
-                "^types"
-            ],
-            "outputs": [
-                "dist/**"
-            ],
+            "dependsOn": ["^clean", "^types"],
             "cache": false
         }
     }

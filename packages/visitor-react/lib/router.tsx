@@ -1,39 +1,33 @@
-import { useState, useCallback, useEffect, createElement } from 'react';
-import { Finder, State, router, defaultSession } from '@interactivevision/visitor';
+import { useState, useEffect, createElement, ComponentType } from 'react';
+import { Finder, State, $init, ComponentState } from '@interactivevision/visitor';
 import { VisitorContext } from './context';
 
 export type RouterProps = State & {
   finder: Finder;
-  component: any;
-};
+  component: ComponentType;
+}
 
 export function Router({ finder, component, ...state }: RouterProps) {
-  const [session, setSession] = useState(state.session || defaultSession);
-  const [shared, setShared] = useState(state.shared || {});
-  const [location, setLocation] = useState(state.location);
-  const [query, setQuery] = useState(state.query || {});
-  const [current, setCurrent] = useState({ component: component, props: state.props });
-
-  const update = useCallback(({ component, state }) => {
-    setCurrent({ component: component, props: state.props });
-    setQuery(state.query);
-    setLocation(state.location);
-    setSession(state.session);
-    setShared((prev) => ({ ...prev, ...state.shared }));
-  }, []);
+  const [visitor, setVisitor] = useState({ component, ...state });
 
   useEffect(() => {
-    router.init({ state, finder, update });
+    $init({ state, finder, update: (state) => setVisitor(state) });
   }, []);
 
-  const parsed = location.replace(/[^a-z0-9]/ig, '-');
-  const key = `visitor-page-${parsed}`;
-  const layout = current.component.layout;
-  const page = createElement(current.component, { key, ...current.props });
+  return createElement(VisitorProvider, visitor);
+}
 
-  return (
-    <VisitorContext.Provider value={{ session, shared, location, query }}>
-      {layout ? createElement(layout, shared, page) : page}
-    </VisitorContext.Provider>
-  );
+function VisitorProvider({ component, location, props, session, query, shared }: ComponentState) {
+  let parsed = location.replace(/[^a-z0-9]/ig, '-');
+  let key = `visitor-page-${parsed}`;
+  let value = { session, shared, query, location };
+  let children;
+
+  if (component.layout) {
+    children = createElement(component.layout, shared, createElement(component, { key, ...props }));
+  } else {
+    children = createElement(component, { key, ...props });
+  }
+
+  return createElement(VisitorContext.Provider, { value }, children);
 }

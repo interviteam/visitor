@@ -1,38 +1,42 @@
 import { ComponentType } from 'react';
-import { Request, Session, State, Meta } from './request';
+import { Request, Method, Body } from './request';
+import { State, Session, Meta, Response } from './response';
 
+export type { State };
 
-export type ComponentState = {
-  component: any;
-  state: State;
+export type ComponentWithLayout = ComponentType & {
+  layout?: any;
+}
+
+export type ComponentState = State & {
+  component: ComponentWithLayout;
 };
 
 export type Finder = (view: string) => Promise<ComponentType>;
 export type UpdateHandler = (state: ComponentState) => void;
 
-export const defaultSession: Session = {
-  is_authenticated: false,
-  user: null,
-  via_remember: false,
-  flash: {},
-};
-
-type RouterOptions = {
+type Init = {
   state: State;
   finder: Finder;
   update: UpdateHandler;
 }
 
-export class Visitor {
+type Options = {
+  method: Method;
+  url: string;
+  body?: Body;
+  replace?: boolean;
+}
+
+class Visitor {
   protected finder!: Finder;
   protected onUpdate!: UpdateHandler;
 
   protected location!: string;
-  protected session!: Session;
   protected state!: State;
   protected request: Request | undefined;
 
-  public init({ state, finder, update }: RouterOptions): void {
+  public init({ state, finder, update }: Init): void {
     this.finder = finder;
     this.onUpdate = update;
 
@@ -45,33 +49,33 @@ export class Visitor {
   }
 
   protected initializeFirstVisit(state: State) {
-    this.replaceState(state);
+    this.replaceHistoryState(state);
   }
 
   protected fireEvent(name: string, options = {}) {
     return document.dispatchEvent(new CustomEvent(`visitor:${name}`, options));
   }
 
-  public dispatch(url: string, replace: boolean = false): Promise<State> {
+  public dispatch({ method, url, body = null, replace = false }: Options): Promise<State> {
     if (this.request !== undefined) {
       this.request.abort();
     }
 
     this.fireEvent('start');
-    this.request = new Request(url);
+    this.request = new Request(method, url, body);
 
     return this.request.send()
       .then((res) => {
-        this.updateComponent(res, replace);
+        if (res.partial) {
+          return this.handlePartialResponse(res);
+        }
 
-        return res;
+        return this.updateComponent(this.mergeState(res.data), replace);
       })
       .catch((error) => {
         console.error(error);
 
         this.fireEvent('error');
-
-        // TODO: Display errors somehow here. Might be useful to resolve error pages and provide some API.
 
         return Promise.reject(error);
       })
@@ -80,11 +84,43 @@ export class Visitor {
       });
   }
 
-  public reload(): Promise<State> {
-    return this.dispatch(this.location, true);
+  protected handlePartialResponse(res: Response) {
+    // First we want to merge state within visitor to apply any partial
+    // changes to the state props/shared parts.
+    this.mergeState(res.data, true);
+
+    // Now once state is merged, we can call redirect when provided.
+    // Otherwise, we can simply update the component with fresh state.
+    if (res.redirect) {
+      return this.dispatch({ method: 'GET', url: res.redirect, replace: false });
+    }
+
+    return this.updateComponent(this.state, true);
   }
 
-  protected pushState(state: State) {
+  protected mergeState(fresh: State, merge: boolean = false): State {
+    this.state = {
+      view: this.state.view,
+      query: fresh.query,
+      session: fresh.session,
+      location: fresh.location,
+      shared: { ...this.state.shared, ...fresh.shared },
+      props: merge ? { ...this.state.props, ...fresh.props } : fresh.props,
+      version: fresh.version,
+    };
+
+    return this.state;
+  }
+
+  public refresh(): Promise<State> {
+    return this.dispatch({
+      method: 'GET',
+      url: this.location,
+      replace: true,
+    });
+  }
+
+  protected pushHistoryState(state: State) {
     this.state = state;
 
     window.history.pushState(state, '', state.location);
@@ -92,7 +128,7 @@ export class Visitor {
     return state;
   }
 
-  protected replaceState(state: State) {
+  protected replaceHistoryState(state: State) {
     this.state = state;
 
     window.history.replaceState(state, '', state.location);
@@ -104,28 +140,29 @@ export class Visitor {
     if (event.state !== null) {
       this.updateComponent(event.state);
     } else {
-      this.replaceState(this.state);
+      this.replaceHistoryState(this.state);
     }
   }
 
   protected updateComponent(state: State, replace: boolean = false) {
-    this.finder(state.view).then((component) => {
+    return this.finder(state.view).then((component) => {
       this.resetScrollPosition();
       this.updateHead(state.props.meta);
 
       if (replace) {
-        this.replaceState(state);
+        this.replaceHistoryState(state);
       } else {
-        this.pushState(state);
+        this.pushHistoryState(state);
       }
 
-      this.onUpdate.call(this, { component, state });
+      this.onUpdate.call(this, { component, ...state });
+
+      return state;
     });
   }
 
   protected resetScrollPosition() {
-    // @ts-ignore
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    window.scrollTo(0, 0);
   }
 
   protected updateHead(meta?: Meta[]) {
@@ -166,4 +203,54 @@ export class Visitor {
   }
 }
 
-export const router = new Visitor();
+
+/**
+ * We do not want to export visitor instance from the module.
+ * It should not expose its internals outside to avoid unintended usage.
+ */
+
+const visitor = new Visitor();
+
+
+/**
+ * Below we have a public API methods exposed outside the module.
+ */
+
+export const defaultSession: Session = {
+  is_authenticated: false,
+  user: null,
+  via_remember: false,
+  flash: {},
+};
+
+export const $get = (url: string) => {
+  return visitor.dispatch({ method: 'GET', url });
+};
+
+export const $post = (url: string, body?: Body) => {
+  return visitor.dispatch({ method: 'POST', url, body });
+};
+
+export const $patch = (url: string, body?: Body) => {
+  return visitor.dispatch({ method: 'PATCH', url, body });
+};
+
+export const $put = (url: string, body?: Body) => {
+  return visitor.dispatch({ method: 'PUT', url, body });
+};
+
+export const $delete = (url: string) => {
+  return visitor.dispatch({ method: 'DELETE', url });
+};
+
+export const $refresh = () => {
+  visitor.refresh();
+};
+
+export const $redirect = (url: string) => {
+  visitor.dispatch({ method: 'GET', url });
+};
+
+export const $init = (init: Init) => {
+  visitor.init(init);
+};

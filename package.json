@@ -8,7 +8,8 @@
         "build": "turbo run build",
         "deploy": "yarn build && changeset version && changeset publish --no-git-tag"
     },
-    "dependencies": {
-        "@changesets/cli": "^2.26.0"
+    "devDependencies": {
+        "@changesets/cli": "^2.26.0",
+        "vite": "^4.2.1"
     }
 }

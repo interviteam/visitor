@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
-import { defaultSession } from '@interactivevision/visitor';
+import { defaultSession, State } from '@interactivevision/visitor';
 
-export const VisitorContext = createContext({
+export const VisitorContext = createContext<Pick<State, 'session' | 'query' | 'location' | 'shared'>>({
   session: defaultSession,
   query: {},
   location: '',

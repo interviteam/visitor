@@ -1,45 +1,18 @@
-export type Meta = {
-  type: 'title',
-  content: string;
-} | {
-  type: 'meta',
-  name: string;
-  content: string;
-} | {
-  type: 'snippet',
-  content: string;
-};
+import { Response } from './response';
 
-export type Session = {
-  is_authenticated: boolean;
-  user: any;
-  via_remember: boolean;
-  flash: Record<string, any>;
-};
-
-export type State = {
-  // Request query parameters processed from backend.
-  query: Record<string, any>;
-  // Session state from server.
-  session: Session;
-  // Location returned by backend.
-  location: string;
-  // Path to view component for given page.
-  view: string;
-  // Shared props updates.
-  shared: Record<string, any> | undefined;
-  // Props passed to component once it's resolved.
-  props: Record<string, any> & { meta?: Meta[] };
-  // Page assets version.
-  version: string;
-}
+export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Body = XMLHttpRequestBodyInit | null;
 
 export class Request {
+  protected method: Method;
   protected url: string;
   protected xhr: XMLHttpRequest;
+  protected body: Body;
 
-  constructor(url: string) {
+  constructor(method: Method, url: string, body: Body = null) {
+    this.method = method;
     this.url = url;
+    this.body = body;
     this.xhr = new XMLHttpRequest();
   }
 
@@ -47,55 +20,43 @@ export class Request {
     this.xhr.abort();
   }
 
-  public send(): Promise<State> {
+  public send(): Promise<Response> {
     return new Promise((resolve, reject) => {
       this.xhr.responseType = 'json';
 
-      this.xhr.open('GET', this.url, true);
+      this.xhr.open(this.method, this.url, true);
 
-      this.xhr.setRequestHeader('Accept', 'text/html, application/xhtml+xml');
+      this.xhr.setRequestHeader('Accept', 'application/json');
       this.xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
       this.xhr.setRequestHeader('X-Visitor', 'true');
+      this.xhr.setRequestHeader('X-XSRF-TOKEN', this.readCookie('XSRF-TOKEN'));
 
       this.xhr.onload = () => {
         if (this.xhr.readyState !== XMLHttpRequest.DONE || !this.xhr.status) {
           return;
         }
 
-        if (this.isVisitResponse()) {
-          resolve(this.xhr.response as State);
+        const response = new Response(this.xhr);
+
+        if (response.visitor) {
+          resolve(response);
+          return;
         }
 
-        if (this.isClientError() || this.isServerError()) {
-          reject({ status: this.xhr.status, message: this.xhr.statusText });
-        }
+        reject(response);
       };
 
       this.xhr.onerror = () => {
-        reject({ status: this.xhr.status, message: this.xhr.statusText });
+        reject(new Response(this.xhr));
       };
 
-      this.xhr.send();
+      this.xhr.send(this.body);
     });
   }
 
-  protected isVisitResponse(): boolean {
-    return this.isSuccess() && this.hasVisitHeader();
-  }
+  protected readCookie(name): string {
+    const match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
 
-  protected hasVisitHeader(): boolean {
-    return !!this.xhr.getResponseHeader('x-visitor');
-  }
-
-  protected isSuccess(): boolean {
-    return this.xhr.status >= 200 && this.xhr.status < 300;
-  }
-
-  protected isClientError(): boolean {
-    return this.xhr.status >= 400 && this.xhr.status < 500;
-  }
-
-  protected isServerError(): boolean {
-    return this.xhr.status >= 500 && this.xhr.status < 600;
+    return (match ? decodeURIComponent(match[3]) : '');
   }
 }
