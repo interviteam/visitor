@@ -1,5 +1,13 @@
 # @interactivevision/visitor-react
 
+## 0.1.23
+
+### Patch Changes
+
+- 2928678: Fix
+- Updated dependencies [2928678]
+  - @interactivevision/visitor@0.1.23
+
 ## 0.1.22
 
 ### Patch Changes

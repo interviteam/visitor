@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.23
+
+### Patch Changes
+
+- 2928678: Fix
+
 ## 0.1.22
 
 ### Patch Changes
