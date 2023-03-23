@@ -10,10 +10,10 @@ export class Request {
   protected body: XMLHttpRequestBodyInit;
 
   constructor(method: Method, url: string, body: Body = null) {
+    this.xhr = new XMLHttpRequest();
     this.method = method;
     this.url = url;
     this.body = this.transform(body);
-    this.xhr = new XMLHttpRequest();
   }
 
   public abort(): void {
@@ -62,6 +62,8 @@ export class Request {
     if (typeof body === 'string') {
       return body;
     }
+
+    this.xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
 
     return JSON.stringify(body);
   }
