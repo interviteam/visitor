@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.24
+
+### Patch Changes
+
+- 7ce63ac: Allow request to be provided with Objects.
+
 ## 0.1.23
 
 ### Patch Changes
