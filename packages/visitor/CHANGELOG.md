@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.21
+
+### Patch Changes
+
+- 5a22673: Implement partials visitor requests. Refactor Visitor API.
+
 ## 0.1.20
 
 ### Patch Changes
