@@ -5,11 +5,11 @@
             "cache": false
         },
         "types": {
-            "dependsOn": ["^clean"],
+            "dependsOn": ["clean", "^types"],
             "cache": false
         },
         "build": {
-            "dependsOn": ["^clean", "^types"],
+            "dependsOn": ["clean", "types", "^build"],
             "cache": false
         }
     }

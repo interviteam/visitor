@@ -19,7 +19,7 @@ type Props = Omit<AnchorProps, 'className' | 'children'> & {
   end?: boolean;
 };
 
-export default function Link({ href, target, className, children, end, onClick, ...props }: Props) {
+export function Link({ href, target, className, children, end, onClick, ...props }: Props) {
   const location = useLocation();
 
   const [isPending, setIsPending] = useState(false);
@@ -67,7 +67,7 @@ export default function Link({ href, target, className, children, end, onClick, 
   }
 
   return createElement('a', properties, children);
-};
+}
 
 function shouldInterceptEvent(event: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string, target?: string) {
   if (target === '_blank' || isCrossOriginHref(href)) {
