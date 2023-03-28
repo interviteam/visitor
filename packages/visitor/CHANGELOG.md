@@ -1,5 +1,11 @@
 # @interactivevision/visitor
 
+## 0.1.27
+
+### Patch Changes
+
+- 7993352: Improvements and fixes in partials requests.
+
 ## 0.1.26
 
 ### Patch Changes
