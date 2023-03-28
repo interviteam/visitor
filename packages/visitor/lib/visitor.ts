@@ -117,14 +117,10 @@ class Visitor {
           return this.updateComponent(this.mergeState(res.data), replace);
         }
 
-        return res.data;
+        return res;
       })
       .catch((error) => {
-        console.error(error);
-
-        this.fireEvent('error');
-
-        return Promise.reject(error);
+        return this.fireEvent('error') && Promise.reject(error);
       })
       .finally(() => {
         this.fireEvent('done');
@@ -137,27 +133,40 @@ class Visitor {
     this.mergeState(res.data, true);
 
     // Now once state is merged, we can call redirect when provided.
-    // Otherwise, we can simply update the component with fresh state.
+    // There are two modes for redirect, with or without a hard reload.
+    //
+    // When hard reload option is provided, we simply change window location,
+    // and we return promise which never resolves. This will block unnecessary
+    // further code execution.
     if (res.redirect) {
       if (res.redirect.reload) {
-        window.location.href = res.redirect.target;
-        return;
+        return new Promise(() => {
+          window.location.href = res.redirect.target;
+        });
       }
 
-      return this.dispatch({ method: 'GET', url: res.redirect.target, replace: false });
+      return this.dispatch({
+        method: 'GET',
+        url: res.redirect.target,
+        replace: false,
+      });
     }
 
+    // Otherwise, we can simply update the component with fresh state.
     return this.updateComponent(this.state, true);
   }
 
-  protected mergeState(fresh: State, merge: boolean = false): State {
+  protected mergeState(fresh: State, partial: boolean = false): State {
     this.state = {
-      view: merge ? this.state.view : fresh.view,
+      view: partial ? this.state.view : fresh.view,
       query: fresh.query,
       session: fresh.session,
       location: fresh.location,
+      // We always merge shared state, as it's kept between requests.
       shared: { ...this.state.shared, ...fresh.shared },
-      props: merge ? { ...this.state.props, ...fresh.props } : fresh.props,
+      // Merge components props only for partial updates.
+      // When we have full update, replace props with fresh ones.
+      props: partial ? { ...this.state.props, ...fresh.props } : fresh.props,
       version: fresh.version,
     };
 

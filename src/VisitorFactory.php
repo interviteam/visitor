@@ -236,9 +236,13 @@ class VisitorFactory implements Responsable
 
     public function toResponse($request): SymfonyResponse
     {
-        $this->location = $request->fullUrl();
-        $this->cacheKey = $this->cacheKey ?: $this->location;
+        // We want to update location only for GET requests.
+        // For other methods, we should provide referrer URL.
+        $this->location = $request->isMethod('GET')
+            ? $request->fullUrl()
+            : Redirect::back()->getTargetUrl();
 
+        $this->cacheKey = $this->cacheKey ?: $this->location;
         $data = $this->resolveVisitData($request);
 
         // For "X-Visitor" requests we simply return a JSON data with visit

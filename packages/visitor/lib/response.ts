@@ -21,6 +21,10 @@ export class Response {
     return this.data.redirect;
   }
 
+  public get errors() {
+    return this.data.errors;
+  }
+
   public get visitor() {
     return this.success && !!this.xhr.getResponseHeader('x-visitor');
   }

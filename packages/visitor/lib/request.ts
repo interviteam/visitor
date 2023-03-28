@@ -49,7 +49,9 @@ export class Request {
         reject(new Response(this.xhr));
       };
 
-      this.xhr.send(this.transform(this.body));
+      this.xhr.send(
+        this.transform(this.body),
+      );
     });
   }
 
@@ -60,6 +62,10 @@ export class Request {
 
     if (typeof body === 'string') {
       return body;
+    }
+
+    if (body === null) {
+      return null;
     }
 
     this.xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
