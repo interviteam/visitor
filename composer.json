@@ -23,11 +23,14 @@
         "php": "^8.1",
         "ext-curl": "*",
         "ext-pcntl": "*",
-        "illuminate/broadcasting": "^9.51",
-        "illuminate/console": "^9.0",
-        "illuminate/http": "^9.0",
-        "illuminate/queue": "^9.51",
-        "illuminate/support": "^9.0"
+        "illuminate/auth": "^9.0 | ^10.0",
+        "illuminate/broadcasting": "^9.0 | ^10.0",
+        "illuminate/cache": "^9.0 | ^10.0",
+        "illuminate/console": "^9.0 | ^10.0",
+        "illuminate/http": "^9.0 | ^10.0",
+        "illuminate/queue": "^9.0 | ^10.0",
+        "illuminate/routing": "^9.0 | ^10.0",
+        "illuminate/support": "^9.0 | ^10.0"
     },
     "suggest": {
         "interactivevision/globals": "Easily provide JS globals into your visitor pages."

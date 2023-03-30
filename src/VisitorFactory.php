@@ -4,7 +4,11 @@ namespace InteractiveVision\Visitor;
 
 
 use Closure;
+use Illuminate\Contracts\Auth\Factory as AuthFactory;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Routing\ResponseFactory;
+use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\RedirectResponse;
@@ -12,10 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Session\Store;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Traits\Macroable;
 use InteractiveVision\Globals\Facades\Globals;
 use InteractiveVision\Visitor\Config\VisitorConfiguration;
@@ -38,6 +38,12 @@ class VisitorFactory implements Responsable
     private const MODE_SSR = 'SSR';
 
 
+    private AuthFactory $auth;
+
+
+    private CacheFactory $cache;
+
+
     private ?string $cacheKey = null;
 
 
@@ -48,6 +54,9 @@ class VisitorFactory implements Responsable
 
 
     private Dispatcher $dispatcher;
+
+
+    private UrlGenerator $generator;
 
 
     private string|null|false $guard = false;
@@ -74,6 +83,9 @@ class VisitorFactory implements Responsable
     private bool $reload = false;
 
 
+    private ResponseFactory $response;
+
+
     private Store $session;
 
 
@@ -87,19 +99,27 @@ class VisitorFactory implements Responsable
 
 
     public function __construct(
+        AuthFactory          $auth,
+        CacheFactory         $cache,
         VisitorConfiguration $config,
         Dispatcher           $dispatcher,
-        Store                $session
+        UrlGenerator         $generator,
+        ResponseFactory      $response,
+        Store                $session,
     ) {
+        $this->auth = $auth;
+        $this->cache = $cache;
         $this->config = $config;
         $this->dispatcher = $dispatcher;
+        $this->generator = $generator;
         $this->session = $session;
+        $this->response = $response;
     }
 
 
     public function back(): static
     {
-        return $this->redirect(Redirect::back());
+        return $this->redirect($this->generator->previous());
     }
 
 
@@ -140,6 +160,14 @@ class VisitorFactory implements Responsable
     }
 
 
+    public function noContent(): static
+    {
+        $this->partial = true;
+
+        return $this;
+    }
+
+
     public function partial(array $props): static
     {
         $this->partial = true;
@@ -152,7 +180,10 @@ class VisitorFactory implements Responsable
     public function redirect(RedirectResponse|string $url): static
     {
         $this->partial = true;
-        $this->redirect = $url instanceof RedirectResponse ? $url->getTargetUrl() : $url;
+
+        $this->redirect = $url instanceof RedirectResponse
+            ? $url->getTargetUrl()
+            : $url;
 
         return $this;
     }
@@ -236,26 +267,16 @@ class VisitorFactory implements Responsable
 
     public function toResponse($request): SymfonyResponse
     {
-        // We want to update location only for GET requests.
-        // For other methods, we should provide referrer URL.
-        $this->location = $request->isMethod('GET')
-            ? $request->fullUrl()
-            : Redirect::back()->getTargetUrl();
-
+        $this->location = $this->attachLocation($request);
         $this->cacheKey = $this->cacheKey ?: $this->location;
+
         $data = $this->resolveVisitData($request);
 
         // For "X-Visitor" requests we simply return a JSON data with visit
         // details. These requests are sent when in hydrated SPA already,
         // so everything will be rendered on client side.
         if ($request->visitor()) {
-            $headers = ['X-Visitor' => 'true'];
-
-            if ($this->partial) {
-                $headers['X-Partial'] = 'true';
-            }
-
-            return Response::json($this->attachSession($data), 200, $headers);
+            return $this->response->json($this->attachSession($data), 200, $this->attachHeaders());
         }
 
         // We want to attach globals for the initial page load only.
@@ -277,7 +298,7 @@ class VisitorFactory implements Responsable
         // just once it's hydrated.
         $data = $this->attachSession($data);
 
-        return Response::view($this->view, compact('data', 'rendered'));
+        return $this->response->view($this->view, compact('data', 'rendered'));
     }
 
 
@@ -288,6 +309,34 @@ class VisitorFactory implements Responsable
         }
 
         return $data;
+    }
+
+
+    private function attachHeaders(): array
+    {
+        $headers = ['X-Visitor' => 'true'];
+
+        if ($this->partial) {
+            $headers['X-Partial'] = 'true';
+        }
+
+        return $headers;
+    }
+
+
+    /**
+     * We want to update location only for GET requests.
+     * For other methods, we should provide referrer URL.
+     *
+     * @param Request $request
+     *
+     * @return string
+     */
+    private function attachLocation(Request $request): string
+    {
+        return $request->isMethod('GET')
+            ? $request->fullUrl()
+            : $this->generator->previous();
     }
 
 
@@ -304,7 +353,7 @@ class VisitorFactory implements Responsable
             return $data;
         }
 
-        $guard = Auth::guard($this->guard);
+        $guard = $this->auth->guard($this->guard);
 
         $data['session']['is_authenticated'] = $guard->check();
         $data['session']['user'] = $guard->user();
@@ -365,7 +414,7 @@ class VisitorFactory implements Responsable
         // States might be large for specific views, so it's better to keep them
         // separate and be able to configure `file` driver instead `redis`.
         if (! $request->visitor() && ! $this->partial && $isStaticMode && $isProduction) {
-            return Cache::driver('visitor.data')->rememberForever(
+            return $this->cache->driver('visitor.data')->rememberForever(
                 key: $this->cacheKey,
                 callback: fn() => $this->makeVisitorState($request)
             );
@@ -394,7 +443,7 @@ class VisitorFactory implements Responsable
         // only data will be delivered for client to render client side.
         // This case will be used only for initial page loads.
         if ($this->mode === self::MODE_SSG && App::environment('production')) {
-            return Cache::driver('visitor.views')->rememberForever(
+            return $this->cache->driver('visitor.views')->rememberForever(
                 key: $this->cacheKey,
                 callback: fn() => $this->sendServerRenderingRequest($data),
             );
